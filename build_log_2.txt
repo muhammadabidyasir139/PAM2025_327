@@ -1,0 +1,60 @@
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:mergeDebugShaders UP-TO-DATE
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///E:/Kuliah/Semester%205/Pengembangan%20Aplikasi%20Mobile/Tugas%20Akhir/Mobile/app/src/main/java/com/example/rumahistimewa/ui/profile/owner/IncomeScreen.kt:131:23 Argument type mismatch: actual type is 'kotlin.collections.List<kotlin.Pair<kotlin.String, kotlin.Double>>', but 'kotlin.Int' was expected.
+e: file:///E:/Kuliah/Semester%205/Pengembangan%20Aplikasi%20Mobile/Tugas%20Akhir/Mobile/app/src/main/java/com/example/rumahistimewa/ui/profile/owner/IncomeScreen.kt:131:52 Destructuring of type '@ParameterName(...) kotlin.Int' requires operator function 'component1()'.
+e: file:///E:/Kuliah/Semester%205/Pengembangan%20Aplikasi%20Mobile/Tugas%20Akhir/Mobile/app/src/main/java/com/example/rumahistimewa/ui/profile/owner/IncomeScreen.kt:131:52 Destructuring of type '@ParameterName(...) kotlin.Int' requires operator function 'component2()'.
+e: file:///E:/Kuliah/Semester%205/Pengembangan%20Aplikasi%20Mobile/Tugas%20Akhir/Mobile/app/src/main/java/com/example/rumahistimewa/ui/profile/owner/IncomeScreen.kt:132:21 @Composable invocations can only happen from the context of a @Composable function
+e: file:///E:/Kuliah/Semester%205/Pengembangan%20Aplikasi%20Mobile/Tugas%20Akhir/Mobile/app/src/main/java/com/example/rumahistimewa/ui/profile/owner/IncomeScreen.kt:132:89 Overload resolution ambiguity between candidates:
+@RecentlyNonNull() fun format(p0: Double): String!
+@RecentlyNonNull() fun format(p0: Long): String!
+fun format(p0: Any!): String!
+e: file:///E:/Kuliah/Semester%205/Pengembangan%20Aplikasi%20Mobile/Tugas%20Akhir/Mobile/app/src/main/java/com/example/rumahistimewa/ui/profile/submission/VillaSubmissionScreen.kt:16:47 Unresolved reference 'Image'.
+e: file:///E:/Kuliah/Semester%205/Pengembangan%20Aplikasi%20Mobile/Tugas%20Akhir/Mobile/app/src/main/java/com/example/rumahistimewa/ui/profile/submission/VillaSubmissionScreen.kt:179:87 Unresolved reference 'Alignment'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 9s
+28 actionable tasks: 1 executed, 27 up-to-date
