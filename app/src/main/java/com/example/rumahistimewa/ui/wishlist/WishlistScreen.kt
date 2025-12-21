@@ -25,9 +25,11 @@ fun WishlistScreen() {
             )
         }
     ) { paddingValues ->
+        /*
         val pullRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
         var isRefreshing by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
 
+        /*
         if (pullRefreshState.isRefreshing) {
             androidx.compose.runtime.LaunchedEffect(Unit) {
                 isRefreshing = true
@@ -43,12 +45,14 @@ fun WishlistScreen() {
                 pullRefreshState.endRefresh()
             }
         }
+        */
+        */
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .nestedScroll(pullRefreshState.nestedScrollConnection)
+                // .nestedScroll(pullRefreshState.nestedScrollConnection)
         ) {
             androidx.compose.foundation.lazy.LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -73,12 +77,14 @@ fun WishlistScreen() {
                 }
             }
             
+            /*
             androidx.compose.material3.pulltorefresh.PullToRefreshContainer(
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
                 containerColor = androidx.compose.ui.graphics.Color.White,
                 contentColor = com.example.rumahistimewa.ui.theme.RedPrimary
             )
+            */
         }
     }
 }

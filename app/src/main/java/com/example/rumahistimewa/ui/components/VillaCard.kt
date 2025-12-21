@@ -48,34 +48,20 @@ fun VillaCard(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
-            // Image
-            if (imageUrl != null) {
-                coil.compose.AsyncImage(
-                    model = imageUrl,
-                    contentDescription = title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .background(Color.Gray),
-                    contentScale = ContentScale.Crop,
-                    error = painterResource(android.R.drawable.ic_menu_report_image), // Fallback
-                    placeholder = painterResource(android.R.drawable.ic_menu_gallery)
+            // Placeholder Image (Since Coil is removed)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color.LightGray),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(48.dp)
                 )
-            } else {
-                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .background(Color.Gray)
-                ) {
-                     // Placeholder
-                     Icon(
-                         imageVector = Icons.Default.Home,
-                         contentDescription = null,
-                         tint = Color.White,
-                         modifier = Modifier.align(Alignment.Center).size(48.dp)
-                     )
-                }
             }
 
             Column(
@@ -89,7 +75,10 @@ fun VillaCard(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -112,7 +101,9 @@ fun VillaCard(
                 Text(
                     text = location,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))

@@ -5,11 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,17 +55,12 @@ fun ExploreScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Search Bar
-                    androidx.compose.foundation.background(
-                        color = Color.White,
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
-                    )
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
                         modifier = Modifier
                             .weight(1f)
-                            .height(50.dp)
-                            .background(Color.White, androidx.compose.foundation.shape.RoundedCornerShape(24.dp)),
+                            .height(50.dp),
                         placeholder = { 
                             Text(
                                 "Instant Cashback s.d Rp...", 
@@ -83,7 +79,9 @@ fun ExploreScreen(
                         },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White
                         ),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                         singleLine = true
@@ -93,21 +91,21 @@ fun ExploreScreen(
                     
                     // Icons
                      Icon(
-                        imageVector = Icons.Default.Info, // Placeholder for "%"
+                        imageVector = Icons.Filled.Info, // Placeholder for "%"
                         contentDescription = "Promo",
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                      Icon(
-                        imageVector = Icons.Default.notifications, // Placeholder for Chat
+                        imageVector = Icons.Filled.Notifications, // Placeholder for Chat
                         contentDescription = "Chat",
                         tint = Color.White,
                          modifier = Modifier.size(24.dp)
                     )
                      Spacer(modifier = Modifier.width(12.dp))
                      Icon(
-                        imageVector = Icons.Default.List, // Placeholder for Receipt
+                        imageVector = Icons.Filled.List, // Placeholder for Receipt
                         contentDescription = "Orders",
                         tint = Color.White,
                          modifier = Modifier.size(24.dp)
@@ -116,29 +114,33 @@ fun ExploreScreen(
             }
 
             // List
+            /*
             val pullRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
             
             // Logic handled by LaunchedEffect(Unit) in ViewModel refresh call technically, 
             // but we need to trigger it from UI state changes if using pullRefreshState
             
+            /*
             if (pullRefreshState.isRefreshing) {
                 LaunchedEffect(Unit) {
                     viewModel.refresh()
                 }
             }
+            */
 
             LaunchedEffect(isLoading) {
                 if (isLoading) {
-                    pullRefreshState.startRefresh()
+                    // pullRefreshState.startRefresh()
                 } else {
-                    pullRefreshState.endRefresh()
+                    // pullRefreshState.endRefresh()
                 }
             }
+            */
 
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .nestedScroll(pullRefreshState.nestedScrollConnection)
+                    // .nestedScroll(pullRefreshState.nestedScrollConnection)
             ) {
                 LazyColumn(
                     contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
@@ -156,12 +158,14 @@ fun ExploreScreen(
                     }
                 }
                 
+                /*
                 androidx.compose.material3.pulltorefresh.PullToRefreshContainer(
                     state = pullRefreshState,
                     modifier = Modifier.align(Alignment.TopCenter),
                     containerColor = Color.White,
                     contentColor = RedPrimary
                 )
+                */
             }
         }
     }

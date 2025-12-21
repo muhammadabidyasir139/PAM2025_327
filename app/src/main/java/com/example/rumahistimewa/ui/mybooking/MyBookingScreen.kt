@@ -13,6 +13,10 @@ import com.example.rumahistimewa.ui.theme.RedPrimary
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.outlined.DateRange
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,8 +87,11 @@ fun MyBookingScreen() {
             }
 
             // List
+            /*
             val pullRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
             
+            // Logic to trigger refresh
+            /*
             // Logic to trigger refresh
             if (pullRefreshState.isRefreshing) {
                 LaunchedEffect(Unit) {
@@ -110,8 +117,10 @@ fun MyBookingScreen() {
             LaunchedEffect(isLoading) {
                if (isLoading) pullRefreshState.startRefresh() else pullRefreshState.endRefresh()
             }
+            */
+            */
 
-            if (isLoading && !pullRefreshState.isRefreshing) { // Initial load only
+            if (isLoading) { // Initial load only
                  Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
                     CircularProgressIndicator(color = RedPrimary)
                  }
@@ -119,7 +128,7 @@ fun MyBookingScreen() {
                 Box(
                      modifier = Modifier
                         .fillMaxSize()
-                        .nestedScroll(pullRefreshState.nestedScrollConnection)
+                        // .nestedScroll(pullRefreshState.nestedScrollConnection)
                 ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -130,8 +139,117 @@ fun MyBookingScreen() {
                         
                         if (listToShow.isEmpty()) {
                             item {
-                                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                                    Text("No bookings found", color = Color.Gray)
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(24.dp),
+                                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Spacer(modifier = Modifier.height(32.dp))
+                                    // Illustration
+                                    Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Outlined.DateRange, // Placeholder for Folder/Sleep
+                                        contentDescription = null,
+                                        tint = RedPrimary.copy(alpha = 0.6f),
+                                        modifier = Modifier.size(120.dp)
+                                    )
+                                    
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    
+                                    // Title
+                                    Text(
+                                        text = "You don't have any active bookings",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                    
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    
+                                    // Subtitle
+                                    Text(
+                                        text = "Log In or Register to manage your booking with ease. Use the email you used when booking to refund, reschedule, or view your past bookings.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color.Gray,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                    
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    
+                                    // Buttons
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        OutlinedButton(
+                                            onClick = { /* TODO: Navigate to Login */ },
+                                            modifier = Modifier.weight(1f),
+                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = RedPrimary),
+                                            border = androidx.compose.foundation.BorderStroke(1.dp, RedPrimary),
+                                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text("Log In")
+                                        }
+                                        
+                                        Button(
+                                            onClick = { /* TODO: Navigate to Register */ },
+                                            modifier = Modifier.weight(1f),
+                                            colors = ButtonDefaults.buttonColors(containerColor = RedPrimary),
+                                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text("Register")
+                                        }
+                                    }
+                                    
+                                    Spacer(modifier = Modifier.height(48.dp))
+                                    
+                                    // Bottom Section
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalAlignment = androidx.compose.ui.Alignment.Start
+                                    ) {
+                                        Text(
+                                            text = "All Purchase & Refund Activities",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                        )
+                                        
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        
+                                        Card(
+                                            onClick = { /* TODO */ },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
+                                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.List,
+                                                    contentDescription = null,
+                                                    tint = RedPrimary
+                                                )
+                                                Spacer(modifier = Modifier.width(16.dp))
+                                                Text(
+                                                    text = "Your purchase list",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                                Icon(
+                                                    imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowForward,
+                                                    contentDescription = null,
+                                                    tint = Color.Gray
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         } else {
@@ -149,12 +267,14 @@ fun MyBookingScreen() {
                         }
                     }
                     
+                    /*
                     androidx.compose.material3.pulltorefresh.PullToRefreshContainer(
                         state = pullRefreshState,
                         modifier = Modifier.align(androidx.compose.ui.Alignment.TopCenter),
                         containerColor = Color.White,
                         contentColor = RedPrimary
                     )
+                    */
                 }
             }
         }
