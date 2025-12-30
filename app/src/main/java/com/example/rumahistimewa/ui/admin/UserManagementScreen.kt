@@ -11,28 +11,40 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import com.example.rumahistimewa.ui.theme.RedSecondary
-
-data class AdminUser(val id: String, val name: String, val email: String, val role: String, val isActive: Boolean)
+import com.example.rumahistimewa.data.remote.RetrofitClient
+import com.example.rumahistimewa.data.model.User
 
 @Composable
 fun UserManagementScreen(
     onNavigate: (String) -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-    var users = remember { mutableStateListOf<com.example.rumahistimewa.data.model.User>() }
+    var users = remember { mutableStateListOf<User>() }
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
+        isLoading = true
         try {
-            val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.getUsers()
+            val response = RetrofitClient.api.getUsers()
             if (response.isSuccessful) {
                 users.clear()
-                users.addAll(response.body() ?: emptyList())
+                users.addAll(response.body().orEmpty())
+            } else {
+                android.widget.Toast.makeText(
+                    context,
+                    "Failed: ${response.code()} - ${response.message()}",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            android.widget.Toast.makeText(
+                context,
+                "Network error: ${e.message}",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
         } finally {
             isLoading = false
         }
@@ -67,21 +79,23 @@ fun UserManagementScreen(
                         items(users) { user ->
                             UserRow(user = user, onToggleStatus = {
                                 scope.launch {
-                                    val newStatus = !user.isActive
+                                    val currentStatus = user.status ?: "active"
+                                    val newStatus = if (currentStatus == "active") "suspended" else "active"
+                                    
                                     // Optimistic update
                                     val index = users.indexOf(user)
                                     if (index != -1) {
-                                        users[index] = user.copy(isActive = newStatus)
+                                        users[index] = user.copy(status = newStatus)
                                     }
                                     
                                     try {
-                                        val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.updateUserStatus(
+                                        val response = RetrofitClient.api.updateUserStatus(
                                             user.id,
-                                            mapOf("isActive" to newStatus.toString())
+                                            mapOf("status" to newStatus)
                                         )
                                         if (!response.isSuccessful) {
                                             // Revert if failed
-                                            users[index] = user // Revert to old
+                                            if (index != -1) users[index] = user // Revert to old
                                             android.widget.Toast.makeText(context, "Failed to update status", android.widget.Toast.LENGTH_SHORT).show()
                                         }
                                     } catch (e: Exception) {
@@ -100,7 +114,9 @@ fun UserManagementScreen(
 }
 
 @Composable
-fun UserRow(user: com.example.rumahistimewa.data.model.User, onToggleStatus: () -> Unit) {
+fun UserRow(user: User, onToggleStatus: () -> Unit) {
+    val isActive = user.status == "active"
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,12 +132,12 @@ fun UserRow(user: com.example.rumahistimewa.data.model.User, onToggleStatus: () 
             Button(
                 onClick = onToggleStatus,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (user.isActive) RedSecondary else Color.Gray
+                    containerColor = if (isActive) RedSecondary else Color.Gray
                 ),
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                 modifier = Modifier.height(32.dp)
             ) {
-                Text(if (user.isActive) "Active" else "Suspended", style = MaterialTheme.typography.labelSmall)
+                Text(if (isActive) "Active" else "Suspended", style = MaterialTheme.typography.labelSmall)
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.example.rumahistimewa.ui.mybooking
 
+import androidx.compose.runtime.collectAsState
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -17,25 +19,37 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyBookingScreen() {
+fun MyBookingScreen(
+    onBackClick: () -> Unit = {}
+) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Upcoming", "Past")
     var bookings by remember { mutableStateOf<List<com.example.rumahistimewa.data.model.Booking>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     
-    LaunchedEffect(Unit) {
-        try {
-            val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.getMyBookings()
-            if (response.isSuccessful) {
-                bookings = response.body() ?: emptyList()
+    val isLoggedIn by com.example.rumahistimewa.util.UserSession.isLoggedIn.collectAsState()
+
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            isLoading = true
+            try {
+                val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.getMyBookings()
+                if (response.isSuccessful) {
+                    bookings = response.body() ?: emptyList()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isLoading = false
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            isLoading = false
+        } else {
+             bookings = emptyList()
+             isLoading = false
         }
     }
     
@@ -61,6 +75,15 @@ fun MyBookingScreen() {
         topBar = {
             TopAppBar(
                 title = { Text("My Booking", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                         Icon(
+                             imageVector = androidx.compose.material.icons.Icons.Filled.ArrowBack,
+                             contentDescription = "Back",
+                             tint = Color.White
+                         )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = RedPrimary)
             )
         }
@@ -139,130 +162,75 @@ fun MyBookingScreen() {
                         
                         if (listToShow.isEmpty()) {
                             item {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(24.dp),
-                                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Spacer(modifier = Modifier.height(32.dp))
-                                    // Illustration
-                                    Icon(
-                                        imageVector = androidx.compose.material.icons.Icons.Outlined.DateRange, // Placeholder for Folder/Sleep
-                                        contentDescription = null,
-                                        tint = RedPrimary.copy(alpha = 0.6f),
-                                        modifier = Modifier.size(120.dp)
-                                    )
-                                    
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    
-                                    // Title
-                                    Text(
-                                        text = "You don't have any active bookings",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                    )
-                                    
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    
-                                    // Subtitle
-                                    Text(
-                                        text = "Log In or Register to manage your booking with ease. Use the email you used when booking to refund, reschedule, or view your past bookings.",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.Gray,
-                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                    )
-                                    
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    
-                                    // Buttons
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                    ) {
-                                        OutlinedButton(
-                                            onClick = { /* TODO: Navigate to Login */ },
-                                            modifier = Modifier.weight(1f),
-                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = RedPrimary),
-                                            border = androidx.compose.foundation.BorderStroke(1.dp, RedPrimary),
-                                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                                        ) {
-                                            Text("Log In")
-                                        }
-                                        
-                                        Button(
-                                            onClick = { /* TODO: Navigate to Register */ },
-                                            modifier = Modifier.weight(1f),
-                                            colors = ButtonDefaults.buttonColors(containerColor = RedPrimary),
-                                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                                        ) {
-                                            Text("Register")
-                                        }
-                                    }
-                                    
-                                    Spacer(modifier = Modifier.height(48.dp))
-                                    
-                                    // Bottom Section
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalAlignment = androidx.compose.ui.Alignment.Start
-                                    ) {
-                                        Text(
-                                            text = "All Purchase & Refund Activities",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                                        )
-                                        
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        
-                                        Card(
-                                            onClick = { /* TODO */ },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(16.dp),
-                                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.List,
-                                                    contentDescription = null,
-                                                    tint = RedPrimary
-                                                )
-                                                Spacer(modifier = Modifier.width(16.dp))
-                                                Text(
-                                                    text = "Your purchase list",
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                                                    modifier = Modifier.weight(1f)
-                                                )
-                                                Icon(
-                                                    imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowForward,
-                                                    contentDescription = null,
-                                                    tint = Color.Gray
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
+                                com.example.rumahistimewa.ui.components.EmptyState(
+                                    illustration = androidx.compose.material.icons.Icons.Outlined.DateRange,
+                                    title = if (isLoggedIn) "You don't have any active bookings" else "Login Required",
+                                    subtitle = if (isLoggedIn) 
+                                        "Explore our villas and make your first booking today!" 
+                                    else 
+                                        "Log In or Register to manage your booking with ease.",
+                                    onLoginClick = { /* TODO: Navigate to Login */ },
+                                    onRegisterClick = { /* TODO: Navigate to Register */ },
+                                    showPurchaseList = !isLoggedIn,
+                                    showLoginButtons = !isLoggedIn
+                                )
                             }
                         } else {
                             items(listToShow.size) { index ->
                                 val booking = listToShow[index]
-                                VillaCard(
-                                    title = booking.villa?.name ?: "Unknown Villa",
-                                    location = booking.villa?.location ?: "-",
-                                    price = booking.status, // Show status here
-                                    rating = 4.5, // Default/Mock rating
-                                    imageUrl = booking.villa?.photos?.firstOrNull(),
-                                    onClick = {}
-                                )
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text(
+                                            text = booking.villaName ?: booking.villa?.name ?: "Villa Name",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = Color.Black
+                                        )
+                                        Text(
+                                            text = booking.location ?: booking.villa?.location ?: "Location",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Gray
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = "Status: ${booking.status}",
+                                                    color = if (booking.status == "waiting_payment") RedPrimary else Color.Gray,
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                                Text(
+                                                    text = "Rp ${java.text.NumberFormat.getIntegerInstance(java.util.Locale("id", "ID")).format(booking.totalAmount)}",
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    color = RedPrimary
+                                                )
+                                            }
+                                            
+                                            if (booking.status == "waiting_payment" && booking.redirectUrl != null) {
+                                                val context = androidx.compose.ui.platform.LocalContext.current
+                                                Button(
+                                                    onClick = {
+                                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(booking.redirectUrl))
+                                                        context.startActivity(intent)
+                                                    },
+                                                    colors = ButtonDefaults.buttonColors(containerColor = RedPrimary),
+                                                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                                    modifier = Modifier.height(36.dp)
+                                                ) {
+                                                    Text("Pay", fontSize = 12.sp)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

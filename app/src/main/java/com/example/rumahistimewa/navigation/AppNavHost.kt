@@ -114,10 +114,10 @@ fun AppNavHost() {
             com.example.rumahistimewa.ui.profile.details.ChangePasswordScreen(onBackClick = { navController.popBackStack() })
         }
         composable("profile_transactions") {
-            com.example.rumahistimewa.ui.profile.details.TransactionHistoryScreen(onBackClick = { navController.popBackStack() })
+            com.example.rumahistimewa.ui.profile.transaction.TransactionHistoryScreen(onBackClick = { navController.popBackStack() })
         }
         composable("profile_help") {
-            com.example.rumahistimewa.ui.profile.details.HelpCenterScreen(onBackClick = { navController.popBackStack() })
+            com.example.rumahistimewa.ui.profile.help.HelpCenterScreen(onBackClick = { navController.popBackStack() })
         }
         composable("profile_contact") {
             com.example.rumahistimewa.ui.profile.details.ContactUsScreen(onBackClick = { navController.popBackStack() })
@@ -138,6 +138,7 @@ fun AppNavHost() {
                 villaId = villaId,
                 onBackClick = { navController.popBackStack() },
                 onBookClick = {
+
                     if (com.example.rumahistimewa.util.UserSession.isLoggedIn.value) {
                          navController.navigate("booking_flow/$villaId")
                     } else {
@@ -145,6 +146,7 @@ fun AppNavHost() {
                         navController.navigate("login")
                     }
                 }
+
             )
         }
         
@@ -161,6 +163,18 @@ fun AppNavHost() {
                          popUpTo("home_customer") { inclusive = true }
                      }
                  }
+             )
+        }
+        
+        // Wishlist
+        composable("wishlist") {
+            com.example.rumahistimewa.ui.wishlist.WishlistScreen()
+        }
+
+        // My Bookings
+        composable("my_booking") {
+             com.example.rumahistimewa.ui.mybooking.MyBookingScreen(
+                 onBackClick = { navController.popBackStack() }
              )
         }
 
@@ -237,26 +251,39 @@ fun AppNavHost() {
         }
         // Placeholder for Form
         composable("admin_villa_form") {
-             // In real app, this would be a form
-             com.example.rumahistimewa.ui.admin.VillaManagementScreen(
-                onNavigate = { route -> navController.navigate(route) },
-                onLogout = {
+             com.example.rumahistimewa.ui.admin.AdminVillaFormScreen(
+                 villaId = null,
+                 onNavigate = { route -> navController.navigate(route) },
+                 onLogout = {
                      navController.navigate("login") {
                         popUpTo("home_admin") { inclusive = true }
                     }
-                }
+                 },
+                 onBack = { navController.popBackStack() }
              )
         }
-        composable("admin_villa_form/{id}") {
-             // In real app, this would be a form
-             com.example.rumahistimewa.ui.admin.VillaManagementScreen(
-                onNavigate = { route -> navController.navigate(route) },
-                onLogout = {
+        composable("admin_villa_form/{id}") { backStackEntry ->
+             val id = backStackEntry.arguments?.getString("id")
+             com.example.rumahistimewa.ui.admin.AdminVillaFormScreen(
+                 villaId = id,
+                 onNavigate = { route -> navController.navigate(route) },
+                 onLogout = {
                      navController.navigate("login") {
                         popUpTo("home_admin") { inclusive = true }
                     }
-                }
+                 },
+                 onBack = { navController.popBackStack() }
              )
+        }
+
+        composable("admin_villa_detail/{id}") { backStackEntry ->
+             val id = backStackEntry.arguments?.getString("id")
+             if (id != null) {
+                 com.example.rumahistimewa.ui.admin.AdminVillaDetailScreen(
+                     villaId = id,
+                     onBackClick = { navController.popBackStack() }
+                 )
+             }
         }
 
         composable("admin_transactions") {

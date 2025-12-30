@@ -11,39 +11,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.rumahistimewa.data.model.Booking
+import com.example.rumahistimewa.data.remote.RetrofitClient
 import com.example.rumahistimewa.ui.theme.RedPrimary
-
-data class AdminTransaction(val id: String, val customer: String, val villa: String, val date: String, val amount: String, val status: String)
+import kotlinx.coroutines.launch
 
 @Composable
 fun TransactionListScreen(
     onNavigate: (String) -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-    val transactions = listOf(
-        AdminTransaction("TX001", "John Doe", "Villa Paradise", "10-12 Dec", "$200", "Success"),
-        AdminTransaction("TX002", "Alice Wonder", "Mountain Retreat", "15-16 Dec", "$150", "Pending"),
-        AdminTransaction("TX003", "Bob Builder", "Seaside Escape", "20-25 Dec", "$500", "Cancelled")
-    )
+    var transactions by remember { mutableStateOf<List<Booking>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var selectedTransaction by remember { mutableStateOf<Booking?>(null) }
     
-    var selectedTransaction by remember { mutableStateOf<AdminTransaction?>(null) }
+    LaunchedEffect(Unit) {
+        try {
+            val response = RetrofitClient.api.getAdminTransactions()
+            if (response.isSuccessful) {
+                transactions = response.body() ?: emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            isLoading = false
+        }
+    }
 
     if (selectedTransaction != null) {
+        val tx = selectedTransaction!!
         AlertDialog(
             onDismissRequest = { selectedTransaction = null },
             title = { Text("Transaction Details") },
             text = {
                 Column {
-                    Text("ID: ${selectedTransaction?.id}", fontWeight = FontWeight.Bold)
+                    Text("ID: ${tx.id}", fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Customer: ${selectedTransaction?.customer}")
-                    Text("Villa: ${selectedTransaction?.villa}")
-                    Text("Date: ${selectedTransaction?.date}")
-                    Text("Amount: ${selectedTransaction?.amount}", color = RedPrimary, fontWeight = FontWeight.Bold)
-                    Text("Status: ${selectedTransaction?.status}")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Payment Method: Credit Card (Mock)")
-                    Text("Timestamp: 2025-12-15 10:30 AM")
+                    Text("Customer: ${tx.user?.name ?: "User ${tx.userId}"}")
+                    Text("Villa: ${tx.villaName ?: tx.villa?.name ?: "Villa ${tx.villaId}"}")
+                    Text("CheckIn: ${tx.checkIn}")
+                    Text("CheckOut: ${tx.checkOut}")
+                    Text("Amount: Rp ${tx.totalAmount}", color = RedPrimary, fontWeight = FontWeight.Bold)
+                    Text("Status: ${tx.status}")
                 }
             },
             confirmButton = {
@@ -60,26 +69,36 @@ fun TransactionListScreen(
         onLogout = onLogout
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                
-                // Table Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Villa", modifier = Modifier.weight(1.5f), style = MaterialTheme.typography.titleSmall)
-                    Text("Customer", modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.titleSmall)
-                    Text("Date", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                    Text("Status", modifier = Modifier.weight(0.8f), style = MaterialTheme.typography.titleSmall)
-                }
-                HorizontalDivider()
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = RedPrimary)
+            } else {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    
+                    // Table Header
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Villa", modifier = Modifier.weight(1.5f), style = MaterialTheme.typography.titleSmall)
+                        Text("Customer", modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.titleSmall)
+                        Text("Date", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                        Text("Status", modifier = Modifier.weight(0.8f), style = MaterialTheme.typography.titleSmall)
+                    }
+                    HorizontalDivider()
 
-                LazyColumn {
-                    items(transactions) { tx ->
-                        TransactionRow(tx = tx, onClick = { selectedTransaction = tx })
-                        HorizontalDivider()
+                    LazyColumn {
+                        items(transactions) { tx ->
+                            TransactionRow(tx = tx, onClick = { selectedTransaction = tx })
+                            HorizontalDivider()
+                        }
+                    }
+                    
+                    if (transactions.isEmpty()) {
+                         Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            Text("No transactions found", color = Color.Gray)
+                        }
                     }
                 }
             }
@@ -88,7 +107,7 @@ fun TransactionListScreen(
 }
 
 @Composable
-fun TransactionRow(tx: AdminTransaction, onClick: () -> Unit) {
+fun TransactionRow(tx: Booking, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -98,17 +117,17 @@ fun TransactionRow(tx: AdminTransaction, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1.5f)) {
-            Text(tx.villa, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            Text(tx.amount, style = MaterialTheme.typography.bodySmall, color = RedPrimary)
+            Text(tx.villaName ?: tx.villa?.name ?: "Villa ${tx.villaId}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text("Rp ${tx.totalAmount}", style = MaterialTheme.typography.bodySmall, color = RedPrimary)
         }
-        Text(tx.customer, modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.bodySmall)
-        Text(tx.date, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+        Text(tx.user?.name ?: "User ${tx.userId}", modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.bodySmall)
+        Text(tx.checkIn, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
         
         Text(
             tx.status, 
             modifier = Modifier.weight(0.8f), 
             style = MaterialTheme.typography.bodySmall,
-            color = if (tx.status == "Success") Color.Green else if (tx.status == "Cancelled") Color.Red else Color.Gray,
+            color = if (tx.status == "success" || tx.status == "approved") Color.Green else if (tx.status == "pending") Color(0xFFFFA000) else Color.Red,
             fontWeight = FontWeight.Bold
         )
     }

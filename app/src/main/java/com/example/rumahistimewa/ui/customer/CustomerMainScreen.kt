@@ -74,34 +74,16 @@ fun CustomerMainScreen(
                     onVillaClick = onVillaClick
                 )
                 1 -> {
-                    if (isLoggedIn) {
-                        WishlistScreen()
-                    } else {
-                        com.example.rumahistimewa.ui.components.LoginRequiredScreen(
-                            onLoginClick = onLoginClick
-                        )
-                    }
+                    WishlistScreen()
                 }
                 2 -> {
-                    if (isLoggedIn) {
-                        MyBookingScreen()
-                    } else {
-                        com.example.rumahistimewa.ui.components.LoginRequiredScreen(
-                            onLoginClick = onLoginClick
-                        )
-                    }
+                    MyBookingScreen()
                 }
                 3 -> {
-                    if (isLoggedIn) {
-                        ProfileScreen(
-                            onLogout = onLogout,
-                            onNavigate = onNavigateToProfileDetail
-                        )
-                    } else {
-                        com.example.rumahistimewa.ui.components.LoginRequiredScreen(
-                            onLoginClick = onLoginClick
-                        )
-                    }
+                    ProfileScreen(
+                        onLogout = onLogout,
+                        onNavigate = onNavigateToProfileDetail
+                    )
                 }
             }
         }

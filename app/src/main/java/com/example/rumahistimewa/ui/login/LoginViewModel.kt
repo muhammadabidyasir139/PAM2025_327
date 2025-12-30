@@ -11,14 +11,14 @@ class LoginViewModel : ViewModel() {
 
     private val _loginState = MutableStateFlow<String?>(null)
     val loginState = _loginState.asStateFlow()
+    
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
-                // Mock for testing specific roles if API fails or for quick access (OPTIONAL, can remove if strict)
-                // if (email == "admin") ... 
-                // Strict API implementation as requested:
-                
                 val response = RetrofitClient.api.login(
                     mapOf(
                         "email" to email,
@@ -31,14 +31,16 @@ class LoginViewModel : ViewModel() {
                     val token = authResponse.token
                     val user = authResponse.user
                     
+                    com.example.rumahistimewa.util.UserSession.login(user.role, user.id.toString(), token)
                     _loginState.value = user.role
-                    com.example.rumahistimewa.util.UserSession.login(user.role, user.id, token)
                 } else {
                     _loginState.value = "error"
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _loginState.value = "error"
+            } finally {
+                _isLoading.value = false
             }
         }
     }

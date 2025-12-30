@@ -27,6 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.rumahistimewa.ui.theme.RedSecondary
 import com.example.rumahistimewa.ui.theme.White
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import coil.compose.AsyncImage
 
 @Composable
 fun VillaCard(
@@ -35,6 +38,8 @@ fun VillaCard(
     price: String,
     rating: Double,
     imageUrl: String?, // Placeholder for now
+    isWishlisted: Boolean = false,
+    onWishlistClick: () -> Unit = {},
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -56,12 +61,35 @@ fun VillaCard(
                     .background(Color.LightGray),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(48.dp)
-                )
+                if (imageUrl != null) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "Villa Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = Color.White
+                    )
+                }
+                
+                // Wishlist Icon
+                androidx.compose.material3.IconButton(
+                    onClick = onWishlistClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isWishlisted) Icons.Default.Favorite else androidx.compose.material.icons.Icons.Default.FavoriteBorder,
+                        contentDescription = "Wishlist",
+                        tint = if (isWishlisted) RedSecondary else Color.White
+                    )
+                }
             }
 
             Column(

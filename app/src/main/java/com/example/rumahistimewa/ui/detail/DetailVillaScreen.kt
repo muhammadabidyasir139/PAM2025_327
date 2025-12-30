@@ -1,6 +1,7 @@
 package com.example.rumahistimewa.ui.detail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -23,6 +24,7 @@ import com.example.rumahistimewa.ui.theme.RedSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun DetailVillaScreen(
     villaId: String?,
     onBackClick: () -> Unit,
@@ -43,6 +45,33 @@ fun DetailVillaScreen(
         }
     }
 
+    var currentMonth by remember { mutableStateOf(java.time.YearMonth.now()) }
+    var selectedDate by remember { mutableStateOf<java.time.LocalDate?>(null) }
+    
+    val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.example.rumahistimewa.ui.wishlist.WishlistViewModel>(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                return com.example.rumahistimewa.ui.wishlist.WishlistViewModel(
+                    com.example.rumahistimewa.data.repository.WishlistRepository(com.example.rumahistimewa.data.remote.RetrofitClient.api)
+                ) as T
+            }
+        }
+    )
+
+    val transactionViewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.example.rumahistimewa.ui.profile.transaction.TransactionViewModel>()
+    val paymentUrl by transactionViewModel.paymentUrl.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+
+
+    // Optimistic UI State
+    val isWishlistedVM by viewModel.isWishlisted(villaId ?: "").collectAsState()
+    var isWishlistedLocal by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isWishlistedVM) {
+        isWishlistedLocal = isWishlistedVM
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -53,12 +82,22 @@ fun DetailVillaScreen(
                     }
                 },
                 actions = {
-                    var isFavorite by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-                    IconButton(onClick = { isFavorite = !isFavorite }) {
+                    IconButton(onClick = {
+                        if (villa != null) {
+                            // Optimistic Update
+                            isWishlistedLocal = !isWishlistedLocal
+                            
+                            if (isWishlistedLocal) {
+                                viewModel.addToWishlist(villa!!.id)
+                            } else {
+                                viewModel.removeFromWishlist(villa!!.id)
+                            }
+                        }
+                    }) {
                         Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else androidx.compose.material.icons.Icons.Default.FavoriteBorder,
+                            imageVector = if (isWishlistedLocal) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Wishlist",
-                            tint = if (isFavorite) RedSecondary else Color.White
+                            tint = if (isWishlistedLocal) RedSecondary else Color.White
                         )
                     }
                 },
@@ -69,12 +108,20 @@ fun DetailVillaScreen(
         },
         bottomBar = {
             Button(
-                onClick = onBookClick,
+                onClick = {
+                        onBookClick()
+                },
+                // Keep enabled to show toast if date not selected, or disable if preferred. 
+                // Requests said "after pilih tanggal booking tidak dapat diklik" which implies disabled UNTIL date selected.
+                enabled = selectedDate != null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = RedSecondary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = RedSecondary,
+                    disabledContainerColor = Color.Gray
+                )
             ) {
                 Text("Book Now")
             }
@@ -84,7 +131,8 @@ fun DetailVillaScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(Color(0xFF121212)) // Dark theme background
+                .background(Color(0xFF121212))
+                .verticalScroll(androidx.compose.foundation.rememberScrollState())
         ) {
             // Placeholder Image or Real Image
             Box(
@@ -93,8 +141,14 @@ fun DetailVillaScreen(
                     .height(250.dp)
                     .background(Color.Gray)
             ) {
-                 // If I had Coil, I would use it here.
-                 // Image(painter = rememberAsyncImagePainter(villa?.photos?.firstOrNull()), ...)
+                 if (villa?.photos?.isNotEmpty() == true) {
+                     coil.compose.AsyncImage(
+                         model = villa!!.photos.first(),
+                         contentDescription = "Villa Image",
+                         contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                         modifier = Modifier.fillMaxSize()
+                     )
+                 }
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
@@ -112,10 +166,7 @@ fun DetailVillaScreen(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(villa?.location ?: "Unknown Location", color = Color.LightGray)
                     
-                    Spacer(modifier = Modifier.weight(1f))
-                    
-                    Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color(0xFFFFC107))
-                    Text("4.8 (120 Reviews)", color = Color.White)
+                    // Removed Reviews Section as requested
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -134,9 +185,23 @@ fun DetailVillaScreen(
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                
-                // Amenities, Map etc.
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Availability Calendar
+                Text("Availability", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Simple Calendar Implementation
+                com.example.rumahistimewa.ui.components.SimpleCalendar(
+                    yearMonth = currentMonth,
+                    selectedDate = selectedDate,
+                    onDateSelected = { date -> selectedDate = date },
+                    onPreviousMonth = { currentMonth = currentMonth.minusMonths(1) },
+                    onNextMonth = { currentMonth = currentMonth.plusMonths(1) }
+                )
             }
         }
     }
 }
+

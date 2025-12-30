@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import android.widget.Toast
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import com.example.rumahistimewa.data.remote.RetrofitClient
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,14 +54,16 @@ fun VillaSubmissionScreen(
     )
 
     fun createPartFromString(value: String): RequestBody {
-        return RequestBody.create(okhttp3.MediaType.parse("text/plain"), value)
+        val mediaType = "text/plain".toMediaTypeOrNull()
+        return RequestBody.create(mediaType, value)
     }
 
     fun prepareFilePart(partName: String, fileUri: Uri): MultipartBody.Part {
         val resolver = context.contentResolver
         val type = resolver.getType(fileUri) ?: "image/*"
         val bytes = resolver.openInputStream(fileUri)?.use { it.readBytes() } ?: ByteArray(0)
-        val requestFile = RequestBody.create(okhttp3.MediaType.parse(type), bytes)
+        val mediaType = type.toMediaTypeOrNull()
+        val requestFile = RequestBody.create(mediaType, bytes)
         return MultipartBody.Part.createFormData(partName, "image_${System.currentTimeMillis()}.jpg", requestFile)
     }
 

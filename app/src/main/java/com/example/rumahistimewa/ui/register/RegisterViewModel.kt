@@ -15,8 +15,7 @@ class RegisterViewModel : ViewModel() {
     fun register(
         name: String,
         email: String,
-        password: String,
-        role: String
+        password: String
     ) {
         viewModelScope.launch {
             try {
@@ -25,7 +24,7 @@ class RegisterViewModel : ViewModel() {
                         "name" to name,
                         "email" to email,
                         "password" to password,
-                        "role" to role
+                        "role" to "customer"
                     )
                 )
 

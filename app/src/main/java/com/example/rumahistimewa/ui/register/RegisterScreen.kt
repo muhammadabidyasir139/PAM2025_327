@@ -15,7 +15,6 @@ fun RegisterScreen(
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var role by remember { mutableStateOf("customer") }
 
     val state by viewModel.registerState.collectAsState()
 
@@ -58,31 +57,11 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text("Daftar sebagai:")
-
-        Row {
-            RadioButton(
-                selected = role == "customer",
-                onClick = { role = "customer" }
-            )
-            Text("Customer")
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            RadioButton(
-                selected = role == "owner",
-                onClick = { role = "owner" }
-            )
-            Text("Owner")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                viewModel.register(name, email, password, role)
+                viewModel.register(name, email, password)
             },
             modifier = Modifier.fillMaxWidth()
         ) {

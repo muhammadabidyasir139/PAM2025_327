@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -103,7 +104,8 @@ fun VillaManagementScreen(
                                         }
                                     }
                                 }, 
-                                onEdit = { onNavigate("admin_villa_form/${villa.id}") }
+                                onEdit = { onNavigate("admin_villa_form/${villa.id}") },
+                                onView = { onNavigate("admin_villa_detail/${villa.id}") }
                             )
                             HorizontalDivider()
                         }
@@ -115,7 +117,7 @@ fun VillaManagementScreen(
 }
 
 @Composable
-fun VillaRow(villa: com.example.rumahistimewa.data.model.Villa, onDelete: () -> Unit, onEdit: () -> Unit) {
+fun VillaRow(villa: com.example.rumahistimewa.data.model.Villa, onDelete: () -> Unit, onEdit: () -> Unit, onView: () -> Unit) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
@@ -149,11 +151,15 @@ fun VillaRow(villa: com.example.rumahistimewa.data.model.Villa, onDelete: () -> 
         Text(villa.location, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
         Text(villa.owner?.name ?: "ID: ${villa.ownerId.take(5)}", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
         
-        Row(modifier = Modifier.weight(0.8f)) {
+        Row(modifier = Modifier.weight(1.0f)) {
+            IconButton(onClick = onView, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.Default.Info, contentDescription = "View", tint = Color.Blue)
+            }
+            Spacer(modifier = Modifier.width(4.dp))
             IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.Gray)
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             IconButton(onClick = { showDeleteDialog = true }, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
             }

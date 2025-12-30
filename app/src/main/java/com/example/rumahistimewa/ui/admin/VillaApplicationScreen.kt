@@ -75,9 +75,14 @@ fun VillaApplicationScreen(
                                             val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.approveVilla(app.id)
                                             if (response.isSuccessful) {
                                                 applications.remove(app)
-                                                android.widget.Toast.makeText(context, "Application Appoved", android.widget.Toast.LENGTH_SHORT).show()
+                                                android.widget.Toast.makeText(context, "Application Approved", android.widget.Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                android.widget.Toast.makeText(context, "Approve failed", android.widget.Toast.LENGTH_SHORT).show()
                                             }
-                                        } catch(e: Exception) { e.printStackTrace() }
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                            android.widget.Toast.makeText(context, "Network error: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                                        }
                                     }
                                 },
                                 onReject = { 
@@ -87,8 +92,13 @@ fun VillaApplicationScreen(
                                             if (response.isSuccessful) {
                                                 applications.remove(app)
                                                 android.widget.Toast.makeText(context, "Application Rejected", android.widget.Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                android.widget.Toast.makeText(context, "Reject failed", android.widget.Toast.LENGTH_SHORT).show()
                                             }
-                                        } catch(e: Exception) { e.printStackTrace() }
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                            android.widget.Toast.makeText(context, "Network error: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                                        }
                                     }
                                 }
                             )

@@ -25,6 +25,7 @@ fun BookingScreen(
     var isAvailable by remember { mutableStateOf<Boolean?>(null) }
     var isChecking by remember { mutableStateOf(false) }
     var bookingStatus by remember { mutableStateOf<String?>(null) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     
     // Formatting date helper
     fun formatMillis(millis: Long?): String {
@@ -77,14 +78,104 @@ fun BookingScreen(
         },
         bottomBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                if (bookingStatus != null) {
-                     Text(
+                if (bookingStatus != null && !bookingStatus!!.contains("Success")) {
+                    Text(
                         text = bookingStatus!!,
                         modifier = Modifier.padding(16.dp).align(Alignment.CenterHorizontally),
-                        color = if (bookingStatus!!.contains("Success")) Color.Green else Color.Red
-                     )
+                        color = Color.Red
+                    )
                 }
                 
+                // Fetch Villa Price
+                var villaPrice by remember { mutableStateOf(0.0) }
+                LaunchedEffect(villaId) {
+                    if (villaId != null) {
+                        try {
+                             val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.getVillaDetail(villaId)
+                             if (response.isSuccessful) {
+                                 villaPrice = response.body()?.price ?: 0.0
+                             }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+                
+                // Price Calculation
+                val start = dateRangePickerState.selectedStartDateMillis
+                val end = dateRangePickerState.selectedEndDateMillis
+                var totalPrice = 0.0
+                
+                if (start != null && end != null && villaPrice > 0) {
+                     val days = (end - start) / (1000 * 60 * 60 * 24)
+                     if (days > 0) {
+                         totalPrice = days * villaPrice
+                     }
+                }
+                
+                if (totalPrice > 0) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                         Row(
+                             modifier = Modifier
+                                 .fillMaxWidth()
+                                 .padding(16.dp),
+                             horizontalArrangement = Arrangement.SpaceBetween,
+                             verticalAlignment = Alignment.CenterVertically
+                         ) {
+                             Text(
+                                 text = "Total Price:",
+                                 style = MaterialTheme.typography.titleMedium,
+                                 color = Color.Black
+                             )
+                             Text(
+                                 text = "Rp ${java.text.NumberFormat.getIntegerInstance(java.util.Locale("id", "ID")).format(totalPrice)}",
+                                 style = MaterialTheme.typography.titleLarge,
+                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                 color = RedPrimary
+                             )
+                         }
+                    }
+                }
+
+
+                var showPaymentDialog by remember { mutableStateOf(false) }
+                var paymentUrl by remember { mutableStateOf<String?>(null) }
+                
+                if (showPaymentDialog && paymentUrl != null) {
+                    AlertDialog(
+                        onDismissRequest = { 
+                            showPaymentDialog = false
+                            onBookingSuccess() 
+                        },
+                        title = { Text("Booking Created") },
+                        text = { Text("Please complete your payment to confirm the booking.") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(paymentUrl))
+                                    context.startActivity(intent)
+                                }
+                            ) {
+                                Text("Pay Now")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { 
+                                showPaymentDialog = false
+                                onBookingSuccess() 
+                            }) {
+                                Text("Later")
+                            }
+                        }
+                    )
+                }
+
                 Button(
                     onClick = { 
                         scope.launch {
@@ -94,23 +185,18 @@ fun BookingScreen(
                                 try {
                                     val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.createBooking(
                                         mapOf(
-                                            "villaId" to villaId, // Pass as number or string? API doc says number for payload, but usually string ref.
-                                            // The payload says "villaId": number. I need to be careful.
-                                            // If villaId is String from my app, can I pass it?
-                                            // "villaId": number.
-                                            // I'll try passing it as is, JSON handles things. Or villaId.toLong() if safe.
-                                            // Assuming string is fine or numeric string.
                                             "villaId" to (villaId.toLongOrNull() ?: villaId),
                                             "checkIn" to formatApiDate(start),
                                             "checkOut" to formatApiDate(end)
                                         )
                                     )
-                                    if (response.isSuccessful) {
+                                    if (response.isSuccessful && response.body() != null) {
+                                        val bookingResp = response.body()!!
                                         bookingStatus = "Booking Successful!"
-                                        kotlinx.coroutines.delay(1000)
-                                        onBookingSuccess()
+                                        paymentUrl = bookingResp.payment.redirectUrl
+                                        showPaymentDialog = true
                                     } else {
-                                        bookingStatus = "Booking Failed"
+                                        bookingStatus = "Booking Failed: ${response.message()}"
                                     }
                                 } catch (e: Exception) {
                                     bookingStatus = "Error: ${e.message}"

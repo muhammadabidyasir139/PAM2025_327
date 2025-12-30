@@ -16,6 +16,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
 
     val state by viewModel.loginState.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     Column(
         modifier = Modifier
@@ -46,9 +47,17 @@ fun LoginScreen(
 
         Button(
             onClick = { viewModel.login(email, password) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
-            Text("Login")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text("Login")
+            }
         }
 
         LaunchedEffect(state) {
