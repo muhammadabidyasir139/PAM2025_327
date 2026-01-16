@@ -1,7 +1,9 @@
 package com.example.rumahistimewa.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class AdminUserResponse(
-    val command: String,
-    val rowCount: Int,
-    val rows: List<User>
+    val message: String,
+    val count: Int,
+    val users: List<User>
 )

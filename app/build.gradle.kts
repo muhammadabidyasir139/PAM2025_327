@@ -63,6 +63,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("androidx.compose.material:material:1.6.0")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("com.google.code.gson:gson:2.10.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
 }

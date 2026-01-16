@@ -18,7 +18,7 @@ class ProfileRepository(private val apiService: ApiService) {
         try {
             val response = apiService.getProfile()
             if (response.isSuccessful && response.body() != null) {
-                emit(Result.success(response.body()!!))
+                emit(Result.success(response.body()!!.user))
             } else {
                 emit(Result.failure(Exception("Failed to fetch profile: ${response.message()}")))
             }
@@ -47,7 +47,7 @@ class ProfileRepository(private val apiService: ApiService) {
 
             val response = apiService.updateProfile(namePart, emailPart, phonePart, photoPart)
             if (response.isSuccessful && response.body() != null) {
-                emit(Result.success(response.body()!!))
+                emit(Result.success(response.body()!!.user))
             } else {
                 emit(Result.failure(Exception("Failed to update profile: ${response.message()}")))
             }

@@ -30,7 +30,15 @@ fun UserManagementScreen(
             val response = RetrofitClient.api.getUsers()
             if (response.isSuccessful) {
                 users.clear()
-                users.addAll(response.body().orEmpty())
+                val list = response.body()?.users ?: emptyList()
+                users.addAll(list)
+                if (users.isEmpty()) {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Data user kosong",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
             } else {
                 android.widget.Toast.makeText(
                     context,

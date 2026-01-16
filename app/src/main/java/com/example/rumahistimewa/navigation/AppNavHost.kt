@@ -114,8 +114,24 @@ fun AppNavHost() {
             com.example.rumahistimewa.ui.profile.details.ChangePasswordScreen(onBackClick = { navController.popBackStack() })
         }
         composable("profile_transactions") {
-            com.example.rumahistimewa.ui.profile.transaction.TransactionHistoryScreen(onBackClick = { navController.popBackStack() })
+            com.example.rumahistimewa.ui.profile.transaction.TransactionHistoryScreen(
+                onBackClick = { navController.popBackStack() },
+                onTransactionClick = { id ->
+                    navController.navigate("detail_transaction/$id")
+                }
+            )
         }
+        
+        composable("detail_transaction/{transactionId}") { backStackEntry ->
+             val transactionId = backStackEntry.arguments?.getString("transactionId")
+             if (transactionId != null) {
+                 com.example.rumahistimewa.ui.profile.transaction.TransactionDetailScreen(
+                     transactionId = transactionId,
+                     onBackClick = { navController.popBackStack() }
+                 )
+             }
+        }
+
         composable("profile_help") {
             com.example.rumahistimewa.ui.profile.help.HelpCenterScreen(onBackClick = { navController.popBackStack() })
         }
@@ -168,14 +184,32 @@ fun AppNavHost() {
         
         // Wishlist
         composable("wishlist") {
-            com.example.rumahistimewa.ui.wishlist.WishlistScreen()
+            com.example.rumahistimewa.ui.wishlist.WishlistScreen(
+                onVillaClick = { villaId ->
+                    navController.navigate("detail_villa/$villaId")
+                }
+            )
         }
 
         // My Bookings
         composable("my_booking") {
              com.example.rumahistimewa.ui.mybooking.MyBookingScreen(
-                 onBackClick = { navController.popBackStack() }
+                 onBackClick = { navController.popBackStack() },
+                 onBookingClick = { bookingId ->
+                     navController.navigate("detail_booking/$bookingId")
+                 }
              )
+        }
+
+        composable(
+            route = "detail_booking/{bookingId}",
+            arguments = listOf(androidx.navigation.navArgument("bookingId") { type = androidx.navigation.NavType.IntType })
+        ) { backStackEntry ->
+            val bookingId = backStackEntry.arguments?.getInt("bookingId") ?: return@composable
+            com.example.rumahistimewa.ui.mybooking.DetailBookingScreen(
+                bookingId = bookingId,
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         // =======================
@@ -183,6 +217,15 @@ fun AppNavHost() {
         // =======================
         composable("villa_submission") {
             com.example.rumahistimewa.ui.profile.submission.VillaSubmissionScreen(
+                onBackClick = { navController.popBackStack() },
+                onAddClick = { navController.navigate("villa_add") },
+                onVillaClick = { villaId ->
+                    navController.navigate("detail_villa/$villaId")
+                }
+            )
+        }
+        composable("villa_add") {
+            com.example.rumahistimewa.ui.profile.submission.VillaAddScreen(
                 onBackClick = { navController.popBackStack() },
                 onSubmitSuccess = { navController.popBackStack() }
             )
@@ -295,6 +338,15 @@ fun AppNavHost() {
                     }
                 }
             )
+        }
+        composable("admin_transaction_detail/{orderId}") { backStackEntry ->
+             val orderId = backStackEntry.arguments?.getString("orderId")
+             if (orderId != null) {
+                 com.example.rumahistimewa.ui.admin.AdminTransactionDetailScreen(
+                     orderId = orderId,
+                     onBackClick = { navController.popBackStack() }
+                 )
+             }
         }
         composable("admin_revenue") {
             com.example.rumahistimewa.ui.admin.RevenueReportScreen(

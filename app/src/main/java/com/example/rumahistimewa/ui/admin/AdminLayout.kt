@@ -25,6 +25,7 @@ fun AdminLayout(
     title: String,
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit,
+    onHomeClick: () -> Unit = { onNavigate("home_admin") },
     content: @Composable (PaddingValues) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -48,7 +49,8 @@ fun AdminLayout(
             topBar = {
                 AdminTopBar(
                     title = title,
-                    onMenuClick = { scope.launch { drawerState.open() } }
+                    onMenuClick = { scope.launch { drawerState.open() } },
+                    onHomeClick = onHomeClick
                 )
             },
             bottomBar = {
@@ -62,7 +64,7 @@ fun AdminLayout(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminTopBar(title: String, onMenuClick: () -> Unit) {
+fun AdminTopBar(title: String, onMenuClick: () -> Unit, onHomeClick: () -> Unit) {
     TopAppBar(
         title = { Text(title, color = Color.White) },
         navigationIcon = {
@@ -71,11 +73,8 @@ fun AdminTopBar(title: String, onMenuClick: () -> Unit) {
             }
         },
         actions = {
-            IconButton(onClick = { /* Navigate to Home */ }) {
+            IconButton(onClick = onHomeClick) {
                 Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
-            }
-            IconButton(onClick = { /* Navigate to Profile */ }) {
-                Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color.White)
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = RedPrimary)

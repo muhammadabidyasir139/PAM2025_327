@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Bed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -29,6 +29,12 @@ import com.example.rumahistimewa.ui.theme.RedSecondary
 import com.example.rumahistimewa.ui.theme.White
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Pool
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Shower
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.Wc
+import androidx.compose.material.icons.filled.Wifi
 import coil.compose.AsyncImage
 
 @Composable
@@ -92,56 +98,60 @@ fun VillaCard(
                 }
             }
 
-            Column(
-                modifier = Modifier.padding(16.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        overflow = TextOverflow.Ellipsis
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = rating.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold
-                        )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = location,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = price,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = RedSecondary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Icon(imageVector = Icons.Default.Shower, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp))
+                        Icon(imageVector = Icons.Default.Bed, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp))
+                        Icon(imageVector = Icons.Default.Wc, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp))
+                        Icon(imageVector = Icons.Default.Pool, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Icon(imageVector = Icons.Default.Wifi, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp))
+                        Icon(imageVector = Icons.Default.Tv, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp))
+                        Icon(imageVector = Icons.Default.Restaurant, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp))
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Text(
-                    text = location,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = price,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = RedSecondary,
-                    fontWeight = FontWeight.SemiBold
-                )
             }
         }
     }

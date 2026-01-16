@@ -11,56 +11,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.rumahistimewa.data.model.Booking
+import com.example.rumahistimewa.data.model.AdminTransactionItem
 import com.example.rumahistimewa.data.remote.RetrofitClient
 import com.example.rumahistimewa.ui.theme.RedPrimary
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun TransactionListScreen(
     onNavigate: (String) -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-    var transactions by remember { mutableStateOf<List<Booking>>(emptyList()) }
+    var transactions by remember { mutableStateOf<List<AdminTransactionItem>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedTransaction by remember { mutableStateOf<Booking?>(null) }
     
     LaunchedEffect(Unit) {
         try {
             val response = RetrofitClient.api.getAdminTransactions()
             if (response.isSuccessful) {
-                transactions = response.body() ?: emptyList()
+                transactions = response.body()?.transactions ?: emptyList()
             }
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             isLoading = false
         }
-    }
-
-    if (selectedTransaction != null) {
-        val tx = selectedTransaction!!
-        AlertDialog(
-            onDismissRequest = { selectedTransaction = null },
-            title = { Text("Transaction Details") },
-            text = {
-                Column {
-                    Text("ID: ${tx.id}", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Customer: ${tx.user?.name ?: "User ${tx.userId}"}")
-                    Text("Villa: ${tx.villaName ?: tx.villa?.name ?: "Villa ${tx.villaId}"}")
-                    Text("CheckIn: ${tx.checkIn}")
-                    Text("CheckOut: ${tx.checkOut}")
-                    Text("Amount: Rp ${tx.totalAmount}", color = RedPrimary, fontWeight = FontWeight.Bold)
-                    Text("Status: ${tx.status}")
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { selectedTransaction = null }) {
-                    Text("Close")
-                }
-            }
-        )
     }
 
     AdminLayout(
@@ -90,7 +66,10 @@ fun TransactionListScreen(
 
                     LazyColumn {
                         items(transactions) { tx ->
-                            TransactionRow(tx = tx, onClick = { selectedTransaction = tx })
+                            TransactionRow(tx = tx, onClick = { 
+                                // Navigate to detail with orderId
+                                onNavigate("admin_transaction_detail/${tx.orderId}")
+                            })
                             HorizontalDivider()
                         }
                     }
@@ -107,7 +86,18 @@ fun TransactionListScreen(
 }
 
 @Composable
-fun TransactionRow(tx: Booking, onClick: () -> Unit) {
+fun TransactionRow(tx: AdminTransactionItem, onClick: () -> Unit) {
+    fun formatDate(dateString: String): String {
+        return try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+            val outputFormat = SimpleDateFormat("dd MMM", Locale.US)
+            val date = inputFormat.parse(dateString)
+            outputFormat.format(date ?: "")
+        } catch (e: Exception) {
+            dateString.take(10)
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -117,17 +107,17 @@ fun TransactionRow(tx: Booking, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1.5f)) {
-            Text(tx.villaName ?: tx.villa?.name ?: "Villa ${tx.villaId}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            Text("Rp ${tx.totalAmount}", style = MaterialTheme.typography.bodySmall, color = RedPrimary)
+            Text(tx.villaName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text("Rp ${String.format("%,.0f", tx.grossAmount)}", style = MaterialTheme.typography.bodySmall, color = RedPrimary)
         }
-        Text(tx.user?.name ?: "User ${tx.userId}", modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.bodySmall)
-        Text(tx.checkIn, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+        Text(tx.customerName, modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.bodySmall)
+        Text(formatDate(tx.checkIn), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
         
         Text(
-            tx.status, 
+            tx.transactionStatus, 
             modifier = Modifier.weight(0.8f), 
             style = MaterialTheme.typography.bodySmall,
-            color = if (tx.status == "success" || tx.status == "approved") Color.Green else if (tx.status == "pending") Color(0xFFFFA000) else Color.Red,
+            color = if (tx.transactionStatus == "success" || tx.transactionStatus == "settlement") Color.Green else if (tx.transactionStatus == "pending") Color(0xFFFFA000) else Color.Red,
             fontWeight = FontWeight.Bold
         )
     }

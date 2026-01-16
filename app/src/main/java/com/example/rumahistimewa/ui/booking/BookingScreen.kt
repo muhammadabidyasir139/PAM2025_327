@@ -42,6 +42,11 @@ fun BookingScreen(
         return formatter.format(Date(millis))
     }
 
+    fun sanitizeUrl(url: String?): String? {
+        val cleaned = url?.trim()?.trim('`')?.trim()
+        return cleaned?.takeIf { it.isNotEmpty() }
+    }
+
     // Availability Check
     LaunchedEffect(dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis) {
         val start = dateRangePickerState.selectedStartDateMillis
@@ -182,18 +187,23 @@ fun BookingScreen(
                             val start = dateRangePickerState.selectedStartDateMillis
                             val end = dateRangePickerState.selectedEndDateMillis
                             if (villaId != null && start != null && end != null) {
+                                val parsedVillaId = villaId.toIntOrNull()
+                                if (parsedVillaId == null) {
+                                    bookingStatus = "Booking Failed: villaId tidak valid"
+                                    return@launch
+                                }
                                 try {
                                     val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.createBooking(
-                                        mapOf(
-                                            "villaId" to (villaId.toLongOrNull() ?: villaId),
-                                            "checkIn" to formatApiDate(start),
-                                            "checkOut" to formatApiDate(end)
+                                        com.example.rumahistimewa.data.model.CreateBookingRequest(
+                                            villaId = parsedVillaId,
+                                            checkIn = formatApiDate(start),
+                                            checkOut = formatApiDate(end)
                                         )
                                     )
                                     if (response.isSuccessful && response.body() != null) {
                                         val bookingResp = response.body()!!
                                         bookingStatus = "Booking Successful!"
-                                        paymentUrl = bookingResp.payment.redirectUrl
+                                        paymentUrl = sanitizeUrl(bookingResp.payment.redirectUrl)
                                         showPaymentDialog = true
                                     } else {
                                         bookingStatus = "Booking Failed: ${response.message()}"
@@ -206,10 +216,11 @@ fun BookingScreen(
                     },
                     enabled = dateRangePickerState.selectedStartDateMillis != null 
                               && dateRangePickerState.selectedEndDateMillis != null
-                              && (isAvailable == true),
+                              && (isAvailable != false),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = RedSecondary,
                         disabledContainerColor = Color.Gray

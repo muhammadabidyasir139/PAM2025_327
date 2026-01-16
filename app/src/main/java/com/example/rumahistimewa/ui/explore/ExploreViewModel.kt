@@ -30,6 +30,11 @@ class ExploreViewModel : ViewModel() {
         fetchVillas()
     }
 
+    private fun sanitizeUrl(url: String?): String? {
+        val cleaned = url?.trim()?.trim('`')?.trim()
+        return cleaned?.takeIf { it.isNotEmpty() }
+    }
+
     private fun fetchVillas() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -44,7 +49,7 @@ class ExploreViewModel : ViewModel() {
                             location = apiVilla.location,
                             price = "Rp ${apiVilla.price} / night",
                             rating = 4.8, // Default rating as API doesn't seem to have one
-                            imageUrl = if (apiVilla.photos.isNotEmpty()) apiVilla.photos[0] else null
+                            imageUrl = sanitizeUrl(apiVilla.photos.firstOrNull())
                         )
                     }
                     _villas.value = uiVillas
@@ -75,7 +80,7 @@ class ExploreViewModel : ViewModel() {
                             location = apiVilla.location,
                             price = "Rp ${apiVilla.price} / night",
                             rating = 4.8, // Default rating as API doesn't seem to have one
-                            imageUrl = if (apiVilla.photos.isNotEmpty()) apiVilla.photos[0] else null
+                            imageUrl = sanitizeUrl(apiVilla.photos.firstOrNull())
                         )
                     }
                     _villas.value = uiVillas

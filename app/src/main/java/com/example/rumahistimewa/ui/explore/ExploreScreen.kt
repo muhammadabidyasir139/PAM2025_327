@@ -28,6 +28,9 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -39,6 +42,33 @@ fun ExploreScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val wishlistViewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.example.rumahistimewa.ui.wishlist.WishlistViewModel>(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                return com.example.rumahistimewa.ui.wishlist.WishlistViewModel(
+                    com.example.rumahistimewa.data.repository.WishlistRepository(com.example.rumahistimewa.data.remote.RetrofitClient.api)
+                ) as T
+            }
+        }
+    )
+    val wishlistItems by wishlistViewModel.wishlistItems.collectAsState()
+    val isLoggedIn by com.example.rumahistimewa.util.UserSession.isLoggedIn.collectAsState()
+    val wishlistedIdsFromApi = remember(wishlistItems) { wishlistItems.map { it.id }.toSet() }
+    val optimisticWishlistedIdsState = remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            wishlistViewModel.fetchWishlist()
+        } else {
+            optimisticWishlistedIdsState.value = emptySet()
+        }
+    }
+
+    LaunchedEffect(wishlistedIdsFromApi) {
+        optimisticWishlistedIdsState.value = wishlistedIdsFromApi
+    }
     
     // Sort logic
     var sortOption by remember { mutableStateOf<String?>(null) }
@@ -118,7 +148,8 @@ fun ExploreScreen(
 
     Scaffold(
         // Remove default TopBar
-        containerColor = Color.White
+        containerColor = Color.White,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -130,10 +161,11 @@ fun ExploreScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(RedPrimary)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 0.dp) // Removed top padding as requested
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                    .windowInsetsPadding(WindowInsets.statusBars)
             ) {
                  Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Search Bar
@@ -209,12 +241,31 @@ fun ExploreScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(filteredVillas) { villa ->
+                        val isWishlisted = optimisticWishlistedIdsState.value.contains(villa.id)
                         VillaCard(
                             title = villa.title,
                             location = villa.location,
                             price = villa.price,
                             rating = villa.rating,
                             imageUrl = villa.imageUrl,
+                            isWishlisted = isWishlisted,
+                            onWishlistClick = {
+                                if (!isLoggedIn) {
+                                    android.widget.Toast.makeText(context, "Silakan login dulu", android.widget.Toast.LENGTH_SHORT).show()
+                                    return@VillaCard
+                                }
+
+                                val villaIdInt = villa.id.toIntOrNull()
+                                if (villaIdInt == null) return@VillaCard
+
+                                if (isWishlisted) {
+                                    optimisticWishlistedIdsState.value = optimisticWishlistedIdsState.value - villa.id
+                                    wishlistViewModel.removeFromWishlist(villa.id)
+                                } else {
+                                    optimisticWishlistedIdsState.value = optimisticWishlistedIdsState.value + villa.id
+                                    wishlistViewModel.addToWishlist(villaIdInt)
+                                }
+                            },
                             onClick = { onVillaClick(villa.id) }
                         )
                     }

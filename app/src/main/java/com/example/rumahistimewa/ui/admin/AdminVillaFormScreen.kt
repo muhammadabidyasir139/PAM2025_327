@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.background
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,6 +45,7 @@ fun AdminVillaFormScreen(
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var selectedImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var existingPhotos by remember { mutableStateOf<List<String>>(emptyList()) }
     var isSubmitting by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
 
@@ -59,10 +62,7 @@ fun AdminVillaFormScreen(
                         location = villa.location
                         description = villa.description
                         price = villa.price.toString()
-                        // Loading existing photos is tricky with URIs. 
-                        // For now we just allow adding NEW photos. 
-                        // To properly show existing photos we would need to display URLs.
-                        // Ideally we would have a separate list for existing URLs and new URIs.
+                        existingPhotos = villa.photos
                     }
                 }
             } catch (e: Exception) {
@@ -116,9 +116,9 @@ fun AdminVillaFormScreen(
                         }
                     }
 
-                    // Image Upload Section (Simply adding new images logic)
+                    // Image Upload Section
                     item {
-                        Text("Photos (New Uploads)", style = MaterialTheme.typography.labelLarge)
+                        Text("Photos", style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(8.dp))
                         LazyRow(
                             modifier = Modifier.fillMaxWidth(),
@@ -138,18 +138,70 @@ fun AdminVillaFormScreen(
                                     Icon(Icons.Default.Add, contentDescription = "Add Photos", tint = Color.Black)
                                 }
                             }
-                            items(selectedImages) { uri ->
-                                Card(
-                                    modifier = Modifier.size(100.dp),
-                                    shape = MaterialTheme.shapes.medium,
-                                    colors = CardDefaults.cardColors(containerColor = Color.LightGray)
-                                ) {
-                                    coil.compose.AsyncImage(
-                                        model = uri,
-                                        contentDescription = "Selected Image",
+                            
+                            // Existing Photos
+                            items(existingPhotos) { url ->
+                                Box(modifier = Modifier.size(100.dp)) {
+                                    Card(
                                         modifier = Modifier.fillMaxSize(),
-                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                    )
+                                        shape = MaterialTheme.shapes.medium,
+                                        colors = CardDefaults.cardColors(containerColor = Color.LightGray)
+                                    ) {
+                                        coil.compose.AsyncImage(
+                                            model = url,
+                                            contentDescription = "Existing Image",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                    // Delete Button (X)
+                                    IconButton(
+                                        onClick = { existingPhotos = existingPhotos - url },
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(24.dp)
+                                            .offset(x = 4.dp, y = (-4).dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Remove Photo",
+                                            tint = Color.Red,
+                                            modifier = Modifier.background(Color.White, shape = androidx.compose.foundation.shape.CircleShape)
+                                        )
+                                    }
+                                }
+                            }
+
+                            // New Selected Images
+                            items(selectedImages) { uri ->
+                                Box(modifier = Modifier.size(100.dp)) {
+                                    Card(
+                                        modifier = Modifier.fillMaxSize(),
+                                        shape = MaterialTheme.shapes.medium,
+                                        colors = CardDefaults.cardColors(containerColor = Color.LightGray)
+                                    ) {
+                                        coil.compose.AsyncImage(
+                                            model = uri,
+                                            contentDescription = "Selected Image",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                    // Delete Button (X)
+                                    IconButton(
+                                        onClick = { selectedImages = selectedImages - uri },
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(24.dp)
+                                            .offset(x = 4.dp, y = (-4).dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Remove Photo",
+                                            tint = Color.Red,
+                                            modifier = Modifier.background(Color.White, shape = androidx.compose.foundation.shape.CircleShape)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -203,24 +255,34 @@ fun AdminVillaFormScreen(
                                         isSubmitting = true
                                         scope.launch {
                                             try {
-                                                val namePart = createPartFromString(villaName)
-                                                val locPart = createPartFromString(location)
-                                                val descPart = createPartFromString(description)
-                                                val pricePart = createPartFromString(price)
-                                                
-                                                // Handle photos if needed
-                                                val photoParts = if (selectedImages.isNotEmpty()) {
-                                                    selectedImages.map { prepareFilePart("photos", it) }
-                                                } else null
-                                                
-                                                val response = RetrofitClient.api.updateVilla(
-                                                    id = villaId,
-                                                    name = namePart,
-                                                    location = locPart,
-                                                    price = pricePart,
-                                                    description = descPart,
-                                                    photos = photoParts
-                                                )
+                                                val response = if (selectedImages.isEmpty()) {
+                                                    // No new images -> Use JSON update
+                                                    val request = com.example.rumahistimewa.data.model.UpdateVillaRequest(
+                                                        name = villaName,
+                                                        location = location,
+                                                        price = price.toDoubleOrNull() ?: 0.0,
+                                                        description = description,
+                                                        photos = existingPhotos
+                                                    )
+                                                    RetrofitClient.api.updateVillaAdminJson(villaId, request)
+                                                } else {
+                                                    // New images -> Use Multipart
+                                                    val namePart = createPartFromString(villaName)
+                                                    val locPart = createPartFromString(location)
+                                                    val descPart = createPartFromString(description)
+                                                    val pricePart = createPartFromString(price)
+                                                    
+                                                    val photoParts = selectedImages.map { prepareFilePart("photos", it) }
+                                                    
+                                                    RetrofitClient.api.updateVillaAdmin(
+                                                        id = villaId,
+                                                        name = namePart,
+                                                        location = locPart,
+                                                        price = pricePart,
+                                                        description = descPart,
+                                                        photos = photoParts
+                                                    )
+                                                }
                                                 
                                                 if (response.isSuccessful) {
                                                     Toast.makeText(context, "Villa Updated", Toast.LENGTH_SHORT).show()

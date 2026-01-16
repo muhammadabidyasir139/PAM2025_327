@@ -6,11 +6,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import com.example.rumahistimewa.ui.theme.RedPrimary
@@ -29,9 +31,10 @@ fun VillaApplicationScreen(
         try {
             val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.getAdminVillas()
             if (response.isSuccessful) {
-                val allVillas = response.body() ?: emptyList()
+                val allVillas = response.body()?.villas ?: emptyList()
                 applications.clear()
-                applications.addAll(allVillas.filter { it.status == "pending" })
+                // Show all villas, not just pending
+                applications.addAll(allVillas)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -60,8 +63,8 @@ fun VillaApplicationScreen(
                     ) {
                         Text("Villa Name", modifier = Modifier.weight(1.5f), style = MaterialTheme.typography.titleSmall)
                         Text("Owner", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                        Text("Date", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                        Text("Actions", modifier = Modifier.weight(0.8f), style = MaterialTheme.typography.titleSmall)
+                        Text("Status", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                        Text("Actions", modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.titleSmall)
                     }
                     HorizontalDivider()
 
@@ -74,7 +77,11 @@ fun VillaApplicationScreen(
                                         try {
                                             val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.approveVilla(app.id)
                                             if (response.isSuccessful) {
-                                                applications.remove(app)
+                                                // Update status locally without removing
+                                                val index = applications.indexOf(app)
+                                                if (index != -1) {
+                                                    applications[index] = app.copy(status = "approved")
+                                                }
                                                 android.widget.Toast.makeText(context, "Application Approved", android.widget.Toast.LENGTH_SHORT).show()
                                             } else {
                                                 android.widget.Toast.makeText(context, "Approve failed", android.widget.Toast.LENGTH_SHORT).show()
@@ -88,12 +95,32 @@ fun VillaApplicationScreen(
                                 onReject = { 
                                     scope.launch {
                                         try {
-                                            val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.deleteVillaAdmin(app.id)
+                                            val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.rejectVilla(app.id)
                                             if (response.isSuccessful) {
-                                                applications.remove(app)
+                                                // Update status locally without removing
+                                                val index = applications.indexOf(app)
+                                                if (index != -1) {
+                                                    applications[index] = app.copy(status = "rejected")
+                                                }
                                                 android.widget.Toast.makeText(context, "Application Rejected", android.widget.Toast.LENGTH_SHORT).show()
                                             } else {
                                                 android.widget.Toast.makeText(context, "Reject failed", android.widget.Toast.LENGTH_SHORT).show()
+                                            }
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                            android.widget.Toast.makeText(context, "Network error: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                },
+                                onDelete = {
+                                    scope.launch {
+                                        try {
+                                            val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.deleteVillaAdmin(app.id)
+                                            if (response.isSuccessful) {
+                                                applications.remove(app)
+                                                android.widget.Toast.makeText(context, "Application Deleted", android.widget.Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                android.widget.Toast.makeText(context, "Delete failed", android.widget.Toast.LENGTH_SHORT).show()
                                             }
                                         } catch (e: Exception) {
                                             e.printStackTrace()
@@ -108,7 +135,7 @@ fun VillaApplicationScreen(
                     
                     if (applications.isEmpty()) {
                         Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("No pending applications", color = Color.Gray)
+                            Text("No applications found", color = Color.Gray)
                         }
                     }
                 }
@@ -118,7 +145,12 @@ fun VillaApplicationScreen(
 }
 
 @Composable
-fun ApplicationRow(app: com.example.rumahistimewa.data.model.Villa, onApprove: () -> Unit, onReject: () -> Unit) {
+fun ApplicationRow(
+    app: com.example.rumahistimewa.data.model.Villa, 
+    onApprove: () -> Unit, 
+    onReject: () -> Unit,
+    onDelete: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -131,15 +163,32 @@ fun ApplicationRow(app: com.example.rumahistimewa.data.model.Villa, onApprove: (
             Text(app.location, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
         }
         Text(app.owner?.name ?: "ID: ${app.ownerId.take(5)}", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-        Text("-", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
         
-        Row(modifier = Modifier.weight(0.8f)) {
-            IconButton(onClick = onApprove, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Check, contentDescription = "Approve", tint = Color.Green)
+        Text(
+            app.status, 
+            modifier = Modifier.weight(1f), 
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = when(app.status) {
+                "approved" -> Color.Green
+                "rejected" -> RedPrimary
+                else -> Color(0xFFFFA000) // Pending or others
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = onReject, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Close, contentDescription = "Reject", tint = RedPrimary)
+        )
+        
+        Row(modifier = Modifier.weight(1.2f)) {
+            if (app.status == "pending") {
+                IconButton(onClick = onApprove, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Check, contentDescription = "Approve", tint = Color.Green)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = onReject, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Close, contentDescription = "Reject", tint = RedPrimary)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Gray)
             }
         }
     }

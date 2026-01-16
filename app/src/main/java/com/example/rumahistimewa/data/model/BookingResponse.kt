@@ -14,3 +14,9 @@ data class PaymentDetails(
     val token: String,
     val redirectUrl: String
 )
+
+data class CreateBookingRequest(
+    val villaId: Int,
+    val checkIn: String,
+    val checkOut: String
+)

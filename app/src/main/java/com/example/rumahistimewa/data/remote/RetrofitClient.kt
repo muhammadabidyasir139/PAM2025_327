@@ -2,10 +2,11 @@ package com.example.rumahistimewa.data.remote
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    private const val BASE_URL = "https://be-rumah-istimewa.vercel.app/api/v1/"
+    const val BASE_URL = "https://be-rumah-istimewa.vercel.app/api/v1/"
 
     private val authInterceptor = okhttp3.Interceptor { chain ->
         val original = chain.request()
@@ -20,6 +21,9 @@ object RetrofitClient {
 
     private val client = okhttp3.OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
     val api: ApiService by lazy {

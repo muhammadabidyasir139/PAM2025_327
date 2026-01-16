@@ -1,26 +1,39 @@
 package com.example.rumahistimewa.ui.profile.details
 
+import android.net.Uri
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.rumahistimewa.data.remote.RetrofitClient
 import com.example.rumahistimewa.data.repository.ProfileRepository
 import com.example.rumahistimewa.ui.profile.ProfileViewModel
 import com.example.rumahistimewa.ui.theme.RedPrimary
 import com.example.rumahistimewa.ui.theme.RedSecondary
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     onBackClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val repository = ProfileRepository(RetrofitClient.api)
     val viewModel: ProfileViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -38,7 +51,25 @@ fun EditProfileScreen(
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    var photoUrl by remember { mutableStateOf("") }
+    var photoUrl by remember { mutableStateOf<String?>(null) }
+    var selectedPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedPhotoFile by remember { mutableStateOf<File?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            selectedPhotoUri = uri
+            selectedPhotoFile = uri?.let { pickedUri ->
+                runCatching {
+                    val tempFile = File.createTempFile("profile_photo_", ".jpg", context.cacheDir)
+                    context.contentResolver.openInputStream(pickedUri)?.use { input ->
+                        tempFile.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    tempFile
+                }.getOrNull()
+            }
+        }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.fetchProfile()
@@ -48,13 +79,16 @@ fun EditProfileScreen(
         profileState?.let {
              name = it.name
              email = it.email
-             phone = it.phone
-             photoUrl = it.photo ?: ""
+             phone = it.phone ?: ""
+             photoUrl = it.photo
         }
     }
 
     LaunchedEffect(updateState) {
         if (updateState == true) {
+             selectedPhotoFile?.delete()
+             selectedPhotoFile = null
+             selectedPhotoUri = null
              onBackClick()
              viewModel.resetUpdateState()
         }
@@ -103,18 +137,65 @@ fun EditProfileScreen(
                 label = { Text("Phone") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(16.dp))
-//            OutlinedTextField(
-//                value = photoUrl,
-//                onValueChange = { photoUrl = it },
-//                label = { Text("Photo URL") },
-//                modifier = Modifier.fillMaxWidth(),
-//                enabled = false // Disable photo edit for now as requested
-//            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            val previewUrl = remember(photoUrl) { photoUrl?.trim()?.trim('`')?.trim()?.takeIf { it.isNotEmpty() } }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Card(
+                    modifier = Modifier.size(84.dp),
+                    shape = CircleShape
+                ) {
+                    when {
+                        selectedPhotoUri != null -> {
+                            AsyncImage(
+                                model = selectedPhotoUri,
+                                contentDescription = "Selected Photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        previewUrl != null -> {
+                            AsyncImage(
+                                model = previewUrl,
+                                contentDescription = "Profile Photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        else -> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.AccountCircle,
+                                    contentDescription = "No Photo",
+                                    tint = Color.Gray
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Button(
+                    onClick = {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+                ) {
+                    Text("Pilih Foto", color = Color.Black)
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = { 
-                    viewModel.updateProfile(name, email, phone, null)
+                    viewModel.updateProfile(name, email, phone, selectedPhotoFile)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = RedSecondary),

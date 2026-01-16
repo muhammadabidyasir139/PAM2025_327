@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,6 +46,7 @@ fun CustomerMainScreen(
     val isLoggedIn by com.example.rumahistimewa.util.UserSession.isLoggedIn.collectAsStateWithLifecycle()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             NavigationBar(
                 containerColor = Color.White
@@ -74,7 +76,7 @@ fun CustomerMainScreen(
                     onVillaClick = onVillaClick
                 )
                 1 -> {
-                    WishlistScreen()
+                    WishlistScreen(onVillaClick = onVillaClick)
                 }
                 2 -> {
                     MyBookingScreen()

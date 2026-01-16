@@ -22,7 +22,9 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun WishlistScreen() {
+fun WishlistScreen(
+    onVillaClick: (String) -> Unit = {}
+) {
     val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.example.rumahistimewa.ui.wishlist.WishlistViewModel>(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
@@ -36,6 +38,11 @@ fun WishlistScreen() {
     val wishlistItems by viewModel.wishlistItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoggedIn by com.example.rumahistimewa.util.UserSession.isLoggedIn.collectAsState()
+
+    fun sanitizeUrl(url: String?): String? {
+        val cleaned = url?.trim()?.trim('`')?.trim()
+        return cleaned?.takeIf { it.isNotEmpty() }
+    }
     
     // Fetch data when logged in
     androidx.compose.runtime.LaunchedEffect(isLoggedIn) {
@@ -98,7 +105,7 @@ fun WishlistScreen() {
                     } else {
                         androidx.compose.foundation.lazy.LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 16.dp, bottom = 16.dp)
                         ) {
                             items(wishlistItems.size) { index ->
                                 val item = wishlistItems[index]
@@ -107,10 +114,10 @@ fun WishlistScreen() {
                                     location = item.location,
                                     price = "Rp ${item.price.toInt()}",
                                     rating = 4.8, 
-                                    imageUrl = item.photos.firstOrNull(),
+                                    imageUrl = sanitizeUrl(item.photos.firstOrNull()),
                                     isWishlisted = true,
                                     onWishlistClick = { viewModel.removeFromWishlist(item.id) },
-                                    onClick = { /* Navigate logic needed here really */ }
+                                    onClick = { onVillaClick(item.id) }
                                 )
                             }
                         }

@@ -19,26 +19,46 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.example.rumahistimewa.ui.theme.RedPrimary
+
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun AdminDashboardScreen(
     onNavigate: (String) -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
+    val viewModel: AdminDashboardViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+
     AdminLayout(
         title = "Admin Dashboard",
         onNavigate = onNavigate,
-        onLogout = onLogout
+        onLogout = onLogout,
+        onHomeClick = { viewModel.fetchDashboardData() }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
+        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            if (state.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = RedPrimary)
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
             // Revenue Chart Section
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -46,20 +66,117 @@ fun AdminDashboardScreen(
                 modifier = Modifier.fillMaxWidth().height(250.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Revenue (Last 7 Days)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Simple Bar Chart
-                    Canvas(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                        val barWidth = size.width / 9
-                        val maxHeight = size.height
-                        val data = listOf(0.4f, 0.6f, 0.3f, 0.8f, 0.5f, 0.9f, 0.7f) // Normalized
-                        
-                        data.forEachIndexed { index, value ->
-                            drawRect(
-                                color = RedPrimary,
-                                topLeft = Offset(x = index * (barWidth + 20f) + 20f, y = maxHeight - (maxHeight * value)),
-                                size = Size(width = barWidth, height = maxHeight * value)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (state.revenuePeriod == "day") "Revenue (Today)" else "Revenue (This Week)",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            SuggestionChip(
+                                onClick = { viewModel.fetchRevenueData("day") },
+                                label = { Text("Day") },
+                                colors = SuggestionChipDefaults.suggestionChipColors(
+                                    containerColor = if (state.revenuePeriod == "day") RedPrimary else Color.Transparent,
+                                    labelColor = if (state.revenuePeriod == "day") Color.White else Color.Black
+                                )
                             )
+                            SuggestionChip(
+                                onClick = { viewModel.fetchRevenueData("week") },
+                                label = { Text("Week") },
+                                colors = SuggestionChipDefaults.suggestionChipColors(
+                                    containerColor = if (state.revenuePeriod == "week") RedPrimary else Color.Transparent,
+                                    labelColor = if (state.revenuePeriod == "week") Color.White else Color.Black
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Simple Bar Chart
+                    var selectedBarIndex by remember { mutableStateOf<Int?>(null) }
+                    
+                    if (state.chartData.isNotEmpty()) {
+                        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                            Canvas(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+                                detectTapGestures { offset ->
+                                    val count = state.chartData.size
+                                    if (count > 0) {
+                                        val gap = 20f
+                                        val canvasWidth = size.width
+                                        val barWidth = ((canvasWidth - (gap * (count + 1))) / count).coerceAtLeast(10f)
+                                        val totalBarWidth = barWidth + gap
+                                        
+                                        // Calculate which bar was clicked
+                                        val index = ((offset.x - gap) / totalBarWidth).toInt()
+                                        if (index in 0 until count) {
+                                            selectedBarIndex = if (selectedBarIndex == index) null else index
+                                        } else {
+                                            selectedBarIndex = null
+                                        }
+                                    }
+                                }
+                            }) {
+                                val count = state.chartData.size
+                                val gap = 20f
+                                // Ensure barWidth is positive
+                                val barWidth = ((size.width - (gap * (count + 1))) / count).coerceAtLeast(10f)
+                                val maxHeight = size.height
+                                
+                                state.chartData.forEachIndexed { index, value ->
+                                    val x = index * (barWidth + gap) + gap
+                                    val barHeight = maxHeight * value
+                                    val y = maxHeight - barHeight
+                                    
+                                    drawRect(
+                                        color = if (selectedBarIndex == index) RedPrimary.copy(alpha = 0.7f) else RedPrimary,
+                                        topLeft = Offset(x = x, y = y),
+                                        size = Size(width = barWidth, height = barHeight)
+                                    )
+                                }
+                            }
+                            
+                            // Tooltip Overlay
+                            selectedBarIndex?.let { index ->
+                                if (index >= 0 && index < state.chartLabels.size && index < state.chartRawData.size) {
+                                    val rawValue = state.chartRawData[index]
+                                    val label = state.chartLabels[index]
+                                    
+                                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                                        Surface(
+                                            color = MaterialTheme.colorScheme.surfaceVariant,
+                                            shape = RoundedCornerShape(8.dp),
+                                            shadowElevation = 4.dp
+                                        ) {
+                                            Text(
+                                                text = "${label}: ${formatter.format(rawValue)}",
+                                                modifier = Modifier.padding(8.dp),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Labels
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            state.chartLabels.take(7).forEach { label ->
+                                Text(text = label, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    } else {
+                        Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                            Text("No data available")
                         }
                     }
                 }
@@ -69,28 +186,24 @@ fun AdminDashboardScreen(
             Text("Overview", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             
             val summaryData = listOf(
-                SummaryItem("Total Users", "1,250", Color(0xFFE3F2FD), Color(0xFF1565C0)),
-                SummaryItem("Active Villas", "45", Color(0xFFE8F5E9), Color(0xFF2E7D32)),
-                SummaryItem("Transactions", "320", Color(0xFFFFF3E0), Color(0xFFEF6C00)),
-                SummaryItem("Total Revenue", "Rp 24.5M", Color(0xFFFCE4EC), RedPrimary)
+                SummaryItem("Total Users", state.totalUsers.toString(), Color(0xFFE3F2FD), Color(0xFF1565C0)),
+                SummaryItem("Total Villas", state.totalVillas.toString(), Color(0xFFE8F5E9), Color(0xFF2E7D32)),
+                SummaryItem("Transactions", state.totalTransactions.toString(), Color(0xFFFFF3E0), Color(0xFFEF6C00)),
+                SummaryItem("Total Revenue", formatter.format(state.totalRevenue), Color(0xFFFCE4EC), RedPrimary)
             )
 
-            // Using a simple Column for rows instead of LazyGrid inside ScrollView to avoid nested scrolling issues
-            summaryData.chunked(2).forEach { rowItems ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    rowItems.forEach { item ->
-                        SummaryCard(item, Modifier.weight(1f))
-                    }
-                    if (rowItems.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
+            // Changed to List (Column) instead of Grid/Row
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                summaryData.forEach { item ->
+                    SummaryCard(item, Modifier.fillMaxWidth())
                 }
             }
         }
     }
+}
+}
 }
 
 data class SummaryItem(val title: String, val value: String, val bgColor: Color, val textColor: Color)

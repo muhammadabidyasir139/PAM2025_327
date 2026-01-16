@@ -1,6 +1,7 @@
 package com.example.rumahistimewa.ui.profile.transaction
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -23,7 +24,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionHistoryScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onTransactionClick: (String) -> Unit
 ) {
     val viewModel: TransactionViewModel = viewModel()
     val transactions by viewModel.transactions.collectAsState()
@@ -78,7 +80,13 @@ fun TransactionHistoryScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(transactions.size) { index ->
-                        TransactionCard(transaction = transactions[index])
+                        TransactionCard(
+                            transaction = transactions[index],
+                            onClick = { 
+                                val id = transactions[index].transactionId ?: transactions[index].orderId
+                                onTransactionClick(id) 
+                            }
+                        )
                     }
                 }
             }
@@ -87,13 +95,15 @@ fun TransactionHistoryScreen(
 }
 
 @Composable
-fun TransactionCard(transaction: Transaction) {
+fun TransactionCard(transaction: Transaction, onClick: () -> Unit) {
     val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
     
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier

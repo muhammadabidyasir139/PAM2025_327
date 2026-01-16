@@ -31,7 +31,7 @@ fun VillaManagementScreen(
         try {
             val response = com.example.rumahistimewa.data.remote.RetrofitClient.api.getAdminVillas()
             if (response.isSuccessful) {
-                val allVillas = response.body() ?: emptyList()
+                val allVillas = response.body()?.villas ?: emptyList()
                 villas.clear()
                 // Show approved/rejected here, as Pending is in another screen
                 villas.addAll(allVillas.filter { it.status != "pending" })

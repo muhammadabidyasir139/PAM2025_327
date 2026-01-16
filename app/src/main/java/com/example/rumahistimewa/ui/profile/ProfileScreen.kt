@@ -2,6 +2,7 @@ package com.example.rumahistimewa.ui.profile
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,7 +30,6 @@ import coil.compose.AsyncImage
 import com.example.rumahistimewa.data.model.ProfileResponse
 import com.example.rumahistimewa.data.remote.RetrofitClient
 import com.example.rumahistimewa.data.repository.ProfileRepository
-import coil.compose.AsyncImage
 import com.example.rumahistimewa.ui.theme.RedPrimary
 import androidx.lifecycle.ViewModelProvider
 
@@ -64,8 +64,7 @@ fun ProfileScreen(
 
     val categories = listOf(
         MenuCategory("Account", listOf(
-            MenuItem("Edit Profile") { onNavigate("profile_edit") },
-            MenuItem("Renew Password") { onNavigate("profile_password") }
+            MenuItem("Edit Profile") { onNavigate("profile_edit") }
         )),
         MenuCategory("History", listOf(
             MenuItem("My Bookings") { onNavigate("my_booking") }, 
@@ -78,7 +77,6 @@ fun ProfileScreen(
         )),
         MenuCategory("Host / Owner", listOf(
             MenuItem("Villa Submission") { onNavigate("villa_submission") },
-            MenuItem("Booking List") { onNavigate("owner_bookings") },
             MenuItem("Income / Revenue") { onNavigate("income_revenue") }
         ))
     )
@@ -153,22 +151,23 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileHeader(profile: ProfileResponse) {
+    val photoUrl = remember(profile.photo) { profile.photo?.trim()?.trim('`')?.trim()?.takeIf { it.isNotEmpty() } }
+    val phone = remember(profile.phone) { profile.phone?.trim()?.takeIf { it.isNotEmpty() } }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (profile.photo != null) {
+        if (photoUrl != null) {
              AsyncImage(
-                model = profile.photo,
+                model = photoUrl,
                 contentDescription = "Profile Picture",
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                placeholder = null, // You might want a placeholder painter here
-                error = null // And an error painter
+                contentScale = ContentScale.Crop
             )
         } else {
             Icon(
@@ -193,9 +192,9 @@ fun ProfileHeader(profile: ProfileResponse) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
-            if (profile.phone.isNotEmpty()) {
+            if (phone != null) {
                  Text(
-                    text = profile.phone,
+                    text = phone,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )

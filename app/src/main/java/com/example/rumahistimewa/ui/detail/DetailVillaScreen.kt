@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
@@ -44,9 +43,6 @@ fun DetailVillaScreen(
             }
         }
     }
-
-    var currentMonth by remember { mutableStateOf(java.time.YearMonth.now()) }
-    var selectedDate by remember { mutableStateOf<java.time.LocalDate?>(null) }
     
     val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.example.rumahistimewa.ui.wishlist.WishlistViewModel>(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
@@ -57,12 +53,6 @@ fun DetailVillaScreen(
             }
         }
     )
-
-    val transactionViewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.example.rumahistimewa.ui.profile.transaction.TransactionViewModel>()
-    val paymentUrl by transactionViewModel.paymentUrl.collectAsState()
-    val context = androidx.compose.ui.platform.LocalContext.current
-
-
 
     // Optimistic UI State
     val isWishlistedVM by viewModel.isWishlisted(villaId ?: "").collectAsState()
@@ -88,7 +78,12 @@ fun DetailVillaScreen(
                             isWishlistedLocal = !isWishlistedLocal
                             
                             if (isWishlistedLocal) {
-                                viewModel.addToWishlist(villa!!.id)
+                                val villaIdInt = villa!!.id.toIntOrNull()
+                                if (villaIdInt != null) {
+                                    viewModel.addToWishlist(villaIdInt)
+                                } else {
+                                    isWishlistedLocal = false
+                                }
                             } else {
                                 viewModel.removeFromWishlist(villa!!.id)
                             }
@@ -111,16 +106,12 @@ fun DetailVillaScreen(
                 onClick = {
                         onBookClick()
                 },
-                // Keep enabled to show toast if date not selected, or disable if preferred. 
-                // Requests said "after pilih tanggal booking tidak dapat diklik" which implies disabled UNTIL date selected.
-                enabled = selectedDate != null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = RedSecondary,
-                    disabledContainerColor = Color.Gray
+                    containerColor = RedSecondary
                 )
             ) {
                 Text("Book Now")
@@ -184,21 +175,6 @@ fun DetailVillaScreen(
                     villa?.description ?: "No description available.",
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Availability Calendar
-                Text("Availability", style = MaterialTheme.typography.titleMedium, color = Color.White)
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Simple Calendar Implementation
-                com.example.rumahistimewa.ui.components.SimpleCalendar(
-                    yearMonth = currentMonth,
-                    selectedDate = selectedDate,
-                    onDateSelected = { date -> selectedDate = date },
-                    onPreviousMonth = { currentMonth = currentMonth.minusMonths(1) },
-                    onNextMonth = { currentMonth = currentMonth.plusMonths(1) }
                 )
             }
         }

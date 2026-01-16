@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 
 class WishlistViewModel(private val repository: WishlistRepository) : ViewModel() {
 
-    private val _wishlistItems = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.rumahistimewa.data.model.Villa>>(emptyList())
-    val wishlistItems: StateFlow<List<com.example.rumahistimewa.data.model.Villa>> = _wishlistItems.asStateFlow()
+    private val _wishlistItems = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.rumahistimewa.data.model.WishlistVilla>>(emptyList())
+    val wishlistItems: StateFlow<List<com.example.rumahistimewa.data.model.WishlistVilla>> = _wishlistItems.asStateFlow()
     
     private val _isLoading = kotlinx.coroutines.flow.MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -32,7 +32,7 @@ class WishlistViewModel(private val repository: WishlistRepository) : ViewModel(
         }
     }
 
-    fun addToWishlist(villaId: String) {
+    fun addToWishlist(villaId: Int) {
         viewModelScope.launch {
             repository.addToWishlist(villaId)
                 .onSuccess {

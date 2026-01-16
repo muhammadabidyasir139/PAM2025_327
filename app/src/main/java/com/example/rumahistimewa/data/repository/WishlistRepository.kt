@@ -1,10 +1,8 @@
 package com.example.rumahistimewa.data.repository
 
-import kotlinx.coroutines.flow.Flow
-
 class WishlistRepository(private val apiService: com.example.rumahistimewa.data.remote.ApiService) {
 
-    suspend fun getWishlist(): Result<List<com.example.rumahistimewa.data.model.Villa>> {
+    suspend fun getWishlist(): Result<List<com.example.rumahistimewa.data.model.WishlistVilla>> {
         return try {
             val response = apiService.getWishlist()
             if (response.isSuccessful) {
@@ -17,7 +15,7 @@ class WishlistRepository(private val apiService: com.example.rumahistimewa.data.
         }
     }
 
-    suspend fun addToWishlist(villaId: String): Result<String> {
+    suspend fun addToWishlist(villaId: Int): Result<String> {
         return try {
             val response = apiService.addToWishlist(com.example.rumahistimewa.data.model.WishlistRequest(villaId))
             if (response.isSuccessful) {
