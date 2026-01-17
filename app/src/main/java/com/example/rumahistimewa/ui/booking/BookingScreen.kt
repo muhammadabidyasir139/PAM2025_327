@@ -27,7 +27,6 @@ fun BookingScreen(
     var bookingStatus by remember { mutableStateOf<String?>(null) }
     val context = androidx.compose.ui.platform.LocalContext.current
     
-    // Formatting date helper
     fun formatMillis(millis: Long?): String {
         return if (millis != null) {
             val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
@@ -47,7 +46,6 @@ fun BookingScreen(
         return cleaned?.takeIf { it.isNotEmpty() }
     }
 
-    // Availability Check
     LaunchedEffect(dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis) {
         val start = dateRangePickerState.selectedStartDateMillis
         val end = dateRangePickerState.selectedEndDateMillis
@@ -61,8 +59,7 @@ fun BookingScreen(
                    checkOut = formatApiDate(end)
                )
                if (response.isSuccessful) {
-                   isAvailable = response.body()?.get("available") as? Boolean ?: true 
-                   // Assuming API returns { "available": true }
+                   isAvailable = response.body()?.get("available") as? Boolean ?: true
                }
             } catch (e: Exception) {
                e.printStackTrace()
@@ -91,7 +88,6 @@ fun BookingScreen(
                     )
                 }
                 
-                // Fetch Villa Price
                 var villaPrice by remember { mutableStateOf(0.0) }
                 LaunchedEffect(villaId) {
                     if (villaId != null) {
@@ -106,7 +102,6 @@ fun BookingScreen(
                     }
                 }
                 
-                // Price Calculation
                 val start = dateRangePickerState.selectedStartDateMillis
                 val end = dateRangePickerState.selectedEndDateMillis
                 var totalPrice = 0.0

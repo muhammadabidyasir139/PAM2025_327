@@ -29,20 +29,16 @@ fun RegisterScreen(
 
     val state by viewModel.registerState.collectAsState()
 
-    // Handle state changes safely outside composition
     LaunchedEffect(state) {
         state?.let {
             if (it == "success") {
                 onRegisterSuccess()
             } else if (it != null && it != "error") {
-                 // Assuming "error" is generic, but if it contains a specific message, show it
-                 // If the ViewModel returns "error" as a string, we might want to handle it better
-                 // For now, if it's not success, we assume it's an error message if it's not just "error"
-                 if (it == "error") {
-                     errorMessage = "Registrasi gagal"
-                 } else {
-                     errorMessage = it
-                 }
+                if (it == "error") {
+                    errorMessage = "Registrasi gagal"
+                } else {
+                    errorMessage = it
+                }
             }
         }
     }
