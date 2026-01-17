@@ -50,7 +50,8 @@ fun AppNavHost() {
                         }
                         com.example.rumahistimewa.util.UserSession.afterLoginDestination = null
                     } else {
-                        when (role) {
+                        val normalizedRole = role.trim().lowercase()
+                        when (normalizedRole) {
                             "customer" -> navController.navigate("home_customer") {
                                 popUpTo("login") { inclusive = true }
                             }
@@ -58,6 +59,9 @@ fun AppNavHost() {
                                 popUpTo("login") { inclusive = true }
                             }
                             "admin" -> navController.navigate("home_admin") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                            else -> navController.navigate("home_customer") {
                                 popUpTo("login") { inclusive = true }
                             }
                         }
@@ -187,6 +191,12 @@ fun AppNavHost() {
             com.example.rumahistimewa.ui.wishlist.WishlistScreen(
                 onVillaClick = { villaId ->
                     navController.navigate("detail_villa/$villaId")
+                },
+                onLoginClick = {
+                    navController.navigate("login")
+                },
+                onRegisterClick = {
+                    navController.navigate("register")
                 }
             )
         }
@@ -197,6 +207,12 @@ fun AppNavHost() {
                  onBackClick = { navController.popBackStack() },
                  onBookingClick = { bookingId ->
                      navController.navigate("detail_booking/$bookingId")
+                 },
+                 onLoginClick = {
+                     navController.navigate("login")
+                 },
+                 onRegisterClick = {
+                     navController.navigate("register")
                  }
              )
         }

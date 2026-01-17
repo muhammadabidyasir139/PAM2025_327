@@ -137,14 +137,21 @@ fun ProfileScreen(
                 }
             }
         } else {
-             com.example.rumahistimewa.ui.components.EmptyState(
-                illustration = Icons.Default.AccountCircle,
-                title = "Login Required",
-                subtitle = "Anda harus login terlebih dahulu untuk mengakses halaman ini.",
-                onLoginClick = { onNavigate("login") },
-                onRegisterClick = { onNavigate("register") },
-                showPurchaseList = false
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                com.example.rumahistimewa.ui.components.EmptyState(
+                    illustration = Icons.Default.AccountCircle,
+                    title = "Login Required",
+                    subtitle = "Anda harus login terlebih dahulu untuk mengakses halaman ini.",
+                    onLoginClick = { onNavigate("login") },
+                    onRegisterClick = { onNavigate("register") },
+                    showPurchaseList = false
+                )
+            }
         }
     }
 }

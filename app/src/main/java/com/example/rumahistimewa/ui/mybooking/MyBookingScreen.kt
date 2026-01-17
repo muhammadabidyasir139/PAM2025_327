@@ -30,7 +30,9 @@ import kotlinx.coroutines.awaitAll
 @Composable
 fun MyBookingScreen(
     onBackClick: () -> Unit = {},
-    onBookingClick: (Int) -> Unit = {}
+    onBookingClick: (Int) -> Unit = {},
+    onLoginClick: () -> Unit = {},
+    onRegisterClick: () -> Unit = onLoginClick
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Upcoming", "Past")
@@ -211,10 +213,10 @@ fun MyBookingScreen(
                                         "Explore our villas and make your first booking today!" 
                                     else 
                                         "Log In or Register to manage your booking with ease.",
-                                    onLoginClick = { /* TODO: Navigate to Login */ },
-                                    onRegisterClick = { /* TODO: Navigate to Register */ },
-                                    showPurchaseList = !isLoggedIn,
-                                    showLoginButtons = !isLoggedIn
+                                    onLoginClick = onLoginClick,
+                                    onRegisterClick = onRegisterClick,
+                                    showLoginButtons = !isLoggedIn,
+                                    showPurchaseList = isLoggedIn
                                 )
                             }
                         } else {
@@ -223,7 +225,7 @@ fun MyBookingScreen(
                                 val villa = villasById[booking.villaId]
                                 val villaName = booking.villaName ?: villa?.name ?: "Villa #${booking.villaId}"
                                 val location = booking.location ?: villa?.location ?: "-"
-                                val status = booking.bookingStatus ?: "-"
+                                val statusRaw = booking.bookingStatus ?: "-"
                                 val totalAmount = booking.bookingTotalAmount ?: 0L
                                 val bookingId = booking.bookingId ?: booking.bookingIdAlt
                                 Card(
@@ -251,9 +253,13 @@ fun MyBookingScreen(
                                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                                         ) {
                                             Column {
+                                                val statusText = when (statusRaw) {
+                                                    "waiting_payment" -> "Waiting Payment"
+                                                    else -> statusRaw
+                                                }
                                                 Text(
-                                                    text = "Status: $status",
-                                                    color = if (status == "waiting_payment") RedPrimary else Color.Gray,
+                                                    text = "Status: $statusText",
+                                                    color = if (statusRaw == "waiting_payment") RedPrimary else Color.Gray,
                                                     style = MaterialTheme.typography.bodySmall
                                                 )
                                                 Text(
@@ -270,7 +276,9 @@ fun MyBookingScreen(
                                             val context = androidx.compose.ui.platform.LocalContext.current
                                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                                 val paymentUrl = sanitizeUrl(booking.payment?.redirectUrl)
-                                                if (paymentUrl != null) {
+                                                val isWaitingPayment = statusRaw == "waiting_payment"
+                                                val isPaid = statusRaw == "success"
+                                                if (isWaitingPayment && paymentUrl != null) {
                                                     Button(
                                                         onClick = {
                                                             val intent = android.content.Intent(
@@ -284,6 +292,19 @@ fun MyBookingScreen(
                                                         modifier = Modifier.fillMaxWidth().height(40.dp)
                                                     ) {
                                                         Text("Pay Now", fontSize = 12.sp)
+                                                    }
+                                                } else if (isPaid) {
+                                                    Button(
+                                                        onClick = {},
+                                                        enabled = false,
+                                                        colors = ButtonDefaults.buttonColors(
+                                                            containerColor = Color.Gray,
+                                                            disabledContainerColor = Color.Gray
+                                                        ),
+                                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                                        modifier = Modifier.fillMaxWidth().height(40.dp)
+                                                    ) {
+                                                        Text("Paid", fontSize = 12.sp, color = Color.White)
                                                     }
                                                 }
 

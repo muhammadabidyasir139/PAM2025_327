@@ -1,6 +1,7 @@
 package com.example.rumahistimewa.ui.register
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,15 +31,17 @@ fun RegisterScreen(
     val state by viewModel.registerState.collectAsState()
 
     LaunchedEffect(state) {
-        state?.let {
-            if (it == "success") {
+        when (state) {
+            null -> Unit
+            "success" -> {
+                errorMessage = null
                 onRegisterSuccess()
-            } else if (it != null && it != "error") {
-                if (it == "error") {
-                    errorMessage = "Registrasi gagal"
-                } else {
-                    errorMessage = it
-                }
+            }
+            "error" -> {
+                errorMessage = "Registrasi gagal"
+            }
+            else -> {
+                errorMessage = state
             }
         }
     }
@@ -72,7 +75,8 @@ fun RegisterScreen(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nama Lengkap") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -81,7 +85,8 @@ fun RegisterScreen(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -102,7 +107,8 @@ fun RegisterScreen(
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(imageVector = image, description)
                         }
-                    }
+                    },
+                    shape = RoundedCornerShape(24.dp)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -123,7 +129,8 @@ fun RegisterScreen(
                         IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                             Icon(imageVector = image, description)
                         }
-                    }
+                    },
+                    shape = RoundedCornerShape(24.dp)
                 )
 
                 if (errorMessage != null) {
@@ -148,7 +155,8 @@ fun RegisterScreen(
                             viewModel.register(name, email, password)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp)
                 ) {
                     Text("Register")
                 }

@@ -32,7 +32,6 @@ fun EmptyState(
         verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.height(32.dp))
-        // Illustration
         Icon(
             imageVector = illustration,
             contentDescription = null,
@@ -42,7 +41,6 @@ fun EmptyState(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Title
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
@@ -52,7 +50,6 @@ fun EmptyState(
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        // Subtitle
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
@@ -62,7 +59,6 @@ fun EmptyState(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Buttons
         if (showLoginButtons) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -90,10 +86,9 @@ fun EmptyState(
             }
         }
         
-        if (showPurchaseList) {
-            Spacer(modifier = Modifier.height(48.dp))
+            if (showPurchaseList) {
+                Spacer(modifier = Modifier.height(48.dp))
             
-            // Bottom Section
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = androidx.compose.ui.Alignment.Start

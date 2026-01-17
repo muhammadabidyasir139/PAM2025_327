@@ -70,7 +70,6 @@ fun ExploreScreen(
         optimisticWishlistedIdsState.value = wishlistedIdsFromApi
     }
     
-    // Sort logic
     var sortOption by remember { mutableStateOf<String?>(null) }
     
     val filteredVillas = remember(villas, searchQuery, sortOption) {
@@ -147,7 +146,6 @@ fun ExploreScreen(
     }
 
     Scaffold(
-        // Remove default TopBar
         containerColor = Color.White,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
@@ -156,7 +154,6 @@ fun ExploreScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            // Custom Header with Red Background
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -168,7 +165,6 @@ fun ExploreScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Search Bar
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
@@ -203,7 +199,6 @@ fun ExploreScreen(
                     
                     Spacer(modifier = Modifier.width(12.dp))
                     
-                    // Filter Icon (was List)
                      IconButton(onClick = { showFilterDialog = true }) {
                          Icon(
                             imageVector = Icons.Filled.Menu, 
@@ -212,10 +207,9 @@ fun ExploreScreen(
                              modifier = Modifier.size(24.dp)
                         )
                      }
-                }
             }
+        }
 
-            // List (with Pull Refresh)
             var isRefreshing by remember { mutableStateOf(false) }
             val scope = rememberCoroutineScope()
             

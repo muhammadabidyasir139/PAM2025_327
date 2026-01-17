@@ -23,7 +23,9 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun WishlistScreen(
-    onVillaClick: (String) -> Unit = {}
+    onVillaClick: (String) -> Unit = {},
+    onLoginClick: () -> Unit = {},
+    onRegisterClick: () -> Unit = onLoginClick
 ) {
     val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.example.rumahistimewa.ui.wishlist.WishlistViewModel>(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
@@ -97,8 +99,8 @@ fun WishlistScreen(
                             illustration = androidx.compose.material.icons.Icons.Default.Favorite,
                             title = "Your wishlist is empty",
                             subtitle = "Explore our villas and save your favorites here.",
-                            onLoginClick = { },
-                            onRegisterClick = { },
+                            onLoginClick = onLoginClick,
+                            onRegisterClick = onRegisterClick,
                             showPurchaseList = false,
                             showLoginButtons = false
                         )
@@ -135,8 +137,8 @@ fun WishlistScreen(
                     illustration = androidx.compose.material.icons.Icons.Default.Favorite,
                     title = "Login Required",
                     subtitle = "Log in to save your dream villas and view them from any device.",
-                    onLoginClick = { /* Handled by NavHost */ }, 
-                    onRegisterClick = { /* Handled by NavHost */ },
+                    onLoginClick = onLoginClick,
+                    onRegisterClick = onRegisterClick,
                     showPurchaseList = false
                 )
             }

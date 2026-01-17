@@ -76,10 +76,15 @@ fun CustomerMainScreen(
                     onVillaClick = onVillaClick
                 )
                 1 -> {
-                    WishlistScreen(onVillaClick = onVillaClick)
+                    WishlistScreen(
+                        onVillaClick = onVillaClick,
+                        onLoginClick = onLoginClick
+                    )
                 }
                 2 -> {
-                    MyBookingScreen()
+                    MyBookingScreen(
+                        onLoginClick = onLoginClick
+                    )
                 }
                 3 -> {
                     ProfileScreen(
