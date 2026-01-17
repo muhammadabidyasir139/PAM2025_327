@@ -29,6 +29,7 @@ fun RegisterScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val state by viewModel.registerState.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(state) {
         when (state) {
@@ -156,9 +157,18 @@ fun RegisterScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading,
                     shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text("Register")
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Register")
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

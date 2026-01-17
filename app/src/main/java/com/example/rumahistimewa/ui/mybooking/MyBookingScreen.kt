@@ -216,7 +216,7 @@ fun MyBookingScreen(
                                     onLoginClick = onLoginClick,
                                     onRegisterClick = onRegisterClick,
                                     showLoginButtons = !isLoggedIn,
-                                    showPurchaseList = isLoggedIn
+                                    showPurchaseList = false
                                 )
                             }
                         } else {

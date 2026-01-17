@@ -11,6 +11,9 @@ class RegisterViewModel : ViewModel() {
 
     private val _registerState = MutableStateFlow<String?>(null)
     val registerState = _registerState.asStateFlow()
+    
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
     fun register(
         name: String,
@@ -18,6 +21,7 @@ class RegisterViewModel : ViewModel() {
         password: String
     ) {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val response = RetrofitClient.api.register(
                     mapOf(
@@ -28,13 +32,11 @@ class RegisterViewModel : ViewModel() {
                     )
                 )
 
-                if (response.isSuccessful) {
-                    _registerState.value = "success"
-                } else {
-                    _registerState.value = "error"
-                }
+                _registerState.value = if (response.isSuccessful) "success" else "error"
             } catch (e: Exception) {
                 _registerState.value = e.message
+            } finally {
+                _isLoading.value = false
             }
         }
     }

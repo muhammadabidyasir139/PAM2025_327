@@ -43,12 +43,17 @@ class ExploreViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     val apiVillas = response.body()!!
                     val uiVillas = apiVillas.map { apiVilla ->
+                        val priceValue = apiVilla.price
+                        val priceLong = priceValue.toLong()
+                        val formattedPrice = java.text.NumberFormat.getIntegerInstance(
+                            java.util.Locale("id", "ID")
+                        ).format(priceLong)
                         Villa(
                             id = apiVilla.id,
                             title = apiVilla.name,
                             location = apiVilla.location,
-                            price = "Rp ${apiVilla.price} / night",
-                            rating = 4.8, // Default rating as API doesn't seem to have one
+                            price = "Rp $formattedPrice / night",
+                            rating = 4.8,
                             imageUrl = sanitizeUrl(apiVilla.photos.firstOrNull())
                         )
                     }
@@ -74,12 +79,17 @@ class ExploreViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     val apiVillas = response.body()!!
                     val uiVillas = apiVillas.map { apiVilla ->
+                        val priceValue = apiVilla.price
+                        val priceLong = priceValue.toLong()
+                        val formattedPrice = java.text.NumberFormat.getIntegerInstance(
+                            java.util.Locale("id", "ID")
+                        ).format(priceLong)
                         Villa(
                             id = apiVilla.id,
                             title = apiVilla.name,
                             location = apiVilla.location,
-                            price = "Rp ${apiVilla.price} / night",
-                            rating = 4.8, // Default rating as API doesn't seem to have one
+                            price = "Rp $formattedPrice / night",
+                            rating = 4.8,
                             imageUrl = sanitizeUrl(apiVilla.photos.firstOrNull())
                         )
                     }
